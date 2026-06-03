@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ faq.title }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'faqs:home' %}">Home</a></li>
+    {% if faq.category %}<li class="breadcrumb-item"><a href="{% url 'faqs:category' faq.category.slug %}">{{ faq.category.name }}</a></li>{% endif %}
+    <li class="breadcrumb-item active">{{ faq.title }}</li>
+  </ol>
+</nav>
+<article class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h1>{{ faq.title }}</h1>
+    <p class="text-muted">By {{ faq.author }} · v{{ faq.version }} · {{ faq.view_count }} views</p>
+    <h5>Question</h5>
+    <div>{{ faq.question|safe }}</div>
+    <h5 class="mt-4">Answer</h5>
+    <div class="faq-answer">{{ faq.answer|safe }}</div>
+    {% if faq.image %}<img src="{{ faq.image.url }}" class="img-fluid mt-3" alt="">{% endif %}
+    {% if faq.attachment %}<p><a href="{{ faq.attachment.url }}">Download attachment</a></p>{% endif %}
+    <div class="mt-3">
+      {% for tag in faq.tags.all %}<span class="badge bg-primary">{{ tag }}</span>{% endfor %}
+    </div>
+  </div>
+  <div class="card-footer d-flex gap-2 flex-wrap">
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'faqs:vote' faq.slug %}" class="d-inline">{% csrf_token %}
+      <button name="vote_type" value="1" class="btn btn-sm btn-outline-success"><i class="bi bi-hand-thumbs-up"></i> {{ faq.upvote_count }}</button>
+      <button name="vote_type" value="-1" class="btn btn-sm btn-outline-danger"><i class="bi bi-hand-thumbs-down"></i> {{ faq.downvote_count }}</button>
+    </form>
+    <form method="post" action="{% url 'faqs:bookmark' faq.slug %}" class="d-inline">{% csrf_token %}
+      <button class="btn btn-sm btn-outline-primary">{% if bookmarked %}<i class="bi bi-bookmark-fill"></i>{% else %}<i class="bi bi-bookmark"></i>{% endif %} Bookmark</button>
+    </form>
+    <a href="{% url 'faqs:edit_suggest' faq.slug %}" class="btn btn-sm btn-outline-secondary">Suggest Edit</a>
+    <a href="{% url 'moderation:report' 'faqs' 'faq' faq.pk %}" class="btn btn-sm btn-outline-warning">Report</a>
+    {% endif %}
+  </div>
+</article>
+{% if related %}
+<h3>Related FAQs</h3>
+<ul>{% for r in related %}<li><a href="{% url 'faqs:detail' r.slug %}">{{ r.title }}</a></li>{% endfor %}</ul>
+{% endif %}
+{% endblock %}

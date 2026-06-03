@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}My Submissions{% endblock %}
+{% block content %}
+<h1>My FAQ Submissions</h1>
+<table class="table">
+  <thead><tr><th>Title</th><th>Status</th><th>Created</th></tr></thead>
+  <tbody>
+  {% for faq in faqs %}
+  <tr>
+    <td>{% if faq.status == 'published' %}<a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a>{% else %}{{ faq.title }}{% endif %}</td>
+    <td><span class="badge bg-{% if faq.status == 'published' %}success{% elif faq.status == 'pending' %}warning{% else %}danger{% endif %}">{{ faq.get_status_display }}</span></td>
+    <td>{{ faq.created_at|date:"M d, Y" }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

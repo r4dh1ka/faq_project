@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block content %}
+<h1><i class="bi {{ category.icon }}"></i> {{ category.name }}</h1>
+<p>{{ category.description }}</p>
+{% for faq in faqs %}
+<div class="card mb-2"><div class="card-body"><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></div></div>
+{% empty %}<p>No FAQs in this category yet.</p>{% endfor %}
+{% endblock %}

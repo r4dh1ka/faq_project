@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Leaderboard{% endblock %}
+{% block content %}
+<h1>Leaderboard — {{ period|title }}</h1>
+<div class="btn-group mb-3">
+  <a href="{% url 'community:leaderboard' %}" class="btn btn-outline-primary {% if period == 'overall' %}active{% endif %}">Overall</a>
+  <a href="{% url 'community:leaderboard_weekly' %}" class="btn btn-outline-primary {% if period == 'weekly' %}active{% endif %}">Weekly</a>
+  <a href="{% url 'community:leaderboard_monthly' %}" class="btn btn-outline-primary {% if period == 'monthly' %}active{% endif %}">Monthly</a>
+</div>
+<table class="table table-striped">
+  <thead><tr><th>#</th><th>User</th><th>Points</th></tr></thead>
+  <tbody>
+  {% for profile in profiles %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td><a href="{% url 'accounts:user_profile' profile.user.username %}">{{ profile.user.username }}</a></td>
+    <td>{{ profile.display_points }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

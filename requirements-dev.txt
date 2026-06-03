@@ -1,0 +1,8 @@
+# Development & testing — install with: pip install -r requirements-dev.txt
+-r requirements.txt
+django-debug-toolbar>=4.2
+ipython>=8.0
+pytest>=8.0
+pytest-django>=4.8
+coverage>=7.4
+ruff>=0.3

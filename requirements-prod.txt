@@ -1,0 +1,4 @@
+# Production deployment — install with: pip install -r requirements-prod.txt
+-r requirements.txt
+dj-database-url>=2.1
+sentry-sdk>=1.40

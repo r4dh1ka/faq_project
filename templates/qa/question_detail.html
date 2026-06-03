@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ question.title }}{% endblock %}
+{% block content %}
+<h1>{{ question.title }}</h1>
+<p class="text-muted">Asked by {{ question.author.username }} · {{ question.view_count }} views</p>
+<div class="mb-4">{{ question.body|safe }}</div>
+{% if similar_faqs %}
+<h5>Related FAQs</h5>
+<ul>{% for f in similar_faqs %}<li><a href="{{ f.get_absolute_url }}">{{ f.title }}</a></li>{% endfor %}</ul>
+{% endif %}
+<hr>
+<h3>{{ answers|length }} Answers</h3>
+{% for answer in answers %}
+<div class="card mb-3 {% if answer.is_accepted %}border-success{% endif %}">
+  <div class="card-body">
+    {% if answer.is_accepted %}<span class="badge bg-success">Accepted</span>{% endif %}
+    <div>{{ answer.body|safe }}</div>
+    <small class="text-muted">{{ answer.author.username }} · Score: {{ answer.score }}</small>
+    {% if user.is_authenticated %}
+    <div class="mt-2">
+      <form method="post" action="{% url 'qa:answer_vote' answer.pk %}" class="d-inline">{% csrf_token %}
+        <button name="vote_type" value="1" class="btn btn-sm btn-outline-success">▲ {{ answer.upvote_count }}</button>
+        <button name="vote_type" value="-1" class="btn btn-sm btn-outline-danger">▼ {{ answer.downvote_count }}</button>
+      </form>
+      {% if question.author == user and not answer.is_accepted %}
+      <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="d-inline">{% csrf_token %}
+        <button class="btn btn-sm btn-success">Accept</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% empty %}<p>No answers yet. Be the first!</p>{% endfor %}
+{% if form %}
+<h3>Your Answer</h3>
+<form method="post" action="{% url 'qa:answer_create' question.pk %}">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Post Answer</button></form>
+{% endif %}
+<a href="{% url 'moderation:report' 'qa' 'question' question.pk %}" class="btn btn-sm btn-outline-warning mt-3">Report</a>
+{% endblock %}

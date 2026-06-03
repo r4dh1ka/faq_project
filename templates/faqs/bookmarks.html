@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Bookmarks{% endblock %}
+{% block content %}
+<h1>My Bookmarks</h1>
+<ul class="list-group">
+{% for b in bookmarks %}
+<li class="list-group-item"><a href="{% url 'faqs:detail' b.faq.slug %}">{{ b.faq.title }}</a></li>
+{% empty %}<li class="list-group-item text-muted">No bookmarks yet.</li>{% endfor %}
+</ul>
+{% endblock %}

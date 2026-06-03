@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Browse FAQs{% endblock %}
+{% block content %}
+<h1>Browse FAQs</h1>
+<form method="get" class="row g-2 mb-4">
+  <div class="col-md-4"><input name="q" class="form-control" placeholder="Keyword search" value="{{ form.q.value|default:'' }}"></div>
+  <div class="col-md-3"><input name="category" class="form-control" placeholder="Category slug" value="{{ form.category.value|default:'' }}"></div>
+  <div class="col-md-2"><input name="tag" class="form-control" placeholder="Tag" value="{{ form.tag.value|default:'' }}"></div>
+  <div class="col-md-2">
+    <select name="sort" class="form-select">
+      <option value="">Sort</option>
+      <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
+      <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>
+      <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most Viewed</option>
+    </select>
+  </div>
+  <div class="col-md-1"><button class="btn btn-primary w-100">Go</button></div>
+</form>
+{% for faq in faqs %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></h5>
+    <p class="text-muted small">{{ faq.category }} · {{ faq.view_count }} views · Score: {{ faq.score }}</p>
+    {% for tag in faq.tags.all %}<span class="badge bg-secondary">{{ tag }}</span>{% endfor %}
+  </div>
+</div>
+{% empty %}
+<p>No FAQs match your search.</p>
+{% endfor %}
+{% endblock %}

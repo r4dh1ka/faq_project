@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>Administrator Dashboard</h1>
+<div class="row g-3">
+  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.users }}</h3><p>Users</p></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.faqs_published }}</h3><p>Published FAQs</p></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.faqs_pending }}</h3><p>Pending FAQs</p></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.questions }}</h3><p>Questions</p></div></div></div>
+  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.open_reports }}</h3><p>Open Reports</p></div></div></div>
+</div>
+<p class="mt-4"><a href="/admin/" class="btn btn-primary">Django Admin</a></p>
+{% endblock %}

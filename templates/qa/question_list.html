@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Community Q&amp;A{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1>Community Questions</h1>
+  <a href="{% url 'qa:question_create' %}" class="btn btn-primary">Ask Question</a>
+</div>
+{% for q in questions %}
+<div class="card mb-2">
+  <div class="card-body">
+    <h5><a href="{% url 'qa:question_detail' q.pk %}">{{ q.title }}</a></h5>
+    <small class="text-muted">{{ q.author.username }} · {{ q.answer_count }} answers · {{ q.view_count }} views</small>
+  </div>
+</div>
+{% empty %}<p>No questions yet.</p>{% endfor %}
+{% endblock %}

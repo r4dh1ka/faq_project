@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Ask Question{% endblock %}
+{% block content %}
+<h1>Ask a Question</h1>
+<form method="post" id="ask-form">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Post</button></form>
+<div id="duplicate-warning" class="alert alert-warning d-none mt-3"></div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('question-title')?.addEventListener('blur', function() {
+  fetch("{% url 'faqs:duplicate_check' %}?title=" + encodeURIComponent(this.value))
+    .then(r => r.json()).then(data => {
+      const el = document.getElementById('duplicate-warning');
+      if (data.duplicates?.length) {
+        el.classList.remove('d-none');
+        el.innerHTML = 'Similar FAQs found: ' + data.duplicates.map(d => '<a href="'+d.url+'">'+d.title+'</a>').join(', ');
+      } else { el.classList.add('d-none'); }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+<div id="yaksha-chatbot" class="chatbot-widget">
+  <button id="chatbot-toggle" class="btn btn-primary rounded-circle chatbot-fab" aria-label="Open FAQ Assistant">
+    <i class="bi bi-robot"></i>
+  </button>
+  <div id="chatbot-panel" class="chatbot-panel d-none">
+    <div class="chatbot-header bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-robot"></i> Yaksha — FAQ Assistant</span>
+      <button type="button" id="chatbot-close" class="btn-close btn-close-white"></button>
+    </div>
+    <div id="chatbot-messages" class="chatbot-messages p-3"></div>
+    <div id="chatbot-suggestions" class="px-3 pb-2 small"></div>
+    <form id="chatbot-form" class="p-3 border-top">
+      {% csrf_token %}
+      <div class="input-group">
+        <input type="text" id="chatbot-input" class="form-control" placeholder="Ask in natural language..." autocomplete="off">
+        <button type="submit" class="btn btn-primary">Send</button>
+      </div>
+    </form>
+  </div>
+</div>

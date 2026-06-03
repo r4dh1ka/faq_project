@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ profile.user.username }} Profile{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4 text-center">
+    {% if profile.avatar %}<img src="{{ profile.avatar.url }}" class="rounded-circle img-thumbnail mb-3" width="120">{% else %}<i class="bi bi-person-circle display-1"></i>{% endif %}
+    <h2>{{ profile.user.username }}</h2>
+    <span class="badge bg-primary">{{ profile.get_role_display }}</span>
+    <p class="display-6 text-primary mt-2">{{ profile.reputation }} pts</p>
+    {% if is_own_profile %}<a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary btn-sm">Edit Profile</a>{% endif %}
+  </div>
+  <div class="col-md-8">
+    <h4>Bio</h4>
+    <p>{{ profile.bio|default:"No bio yet." }}</p>
+    <h4>Badges</h4>
+    <div class="d-flex flex-wrap gap-2">
+      {% for ub in badges %}<span class="badge bg-warning text-dark"><i class="bi {{ ub.badge.icon }}"></i> {{ ub.badge.name }}</span>{% empty %}<p class="text-muted">No badges yet.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

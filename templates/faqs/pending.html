@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Moderation Queue{% endblock %}
+{% block content %}
+<h1>Pending Content</h1>
+<h3>New FAQs</h3>
+{% for faq in pending %}
+<div class="card mb-2">
+  <div class="card-body">
+    <h5>{{ faq.title }}</h5>
+    <p>{{ faq.question|truncatewords:30 }}</p>
+    <form method="post" action="{% url 'faqs:approve' faq.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-success btn-sm">Approve</button></form>
+    <form method="post" action="{% url 'faqs:reject' faq.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-danger btn-sm">Reject</button></form>
+  </div>
+</div>
+{% empty %}<p>No pending FAQs.</p>{% endfor %}
+<h3 class="mt-4">Edit Suggestions</h3>
+{% for edit in edits %}
+<div class="card mb-2">
+  <div class="card-body">
+    <h5>Edit for: {{ edit.faq.title }}</h5>
+    <p>By {{ edit.suggested_by.username }}</p>
+    <form method="post" action="{% url 'faqs:approve_edit' edit.pk %}">{% csrf_token %}<button class="btn btn-primary btn-sm">Apply Edit</button></form>
+  </div>
+</div>
+{% empty %}<p>No pending edits.</p>{% endfor %}
+{% endblock %}

@@ -17,7 +17,7 @@
 <div class="row g-3 mb-5">
   {% for faq in trending %}
   <div class="col-md-4">
-    <div class="card h-100 shadow-sm">
+    <div class="premium-card h-100">
       <div class="card-body">
         <span class="badge bg-secondary">{{ faq.category }}</span>
         <h5 class="card-title mt-2"><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></h5>
@@ -35,7 +35,7 @@
   {% for cat in categories %}
   <div class="col-6 col-md-3">
     <a href="{% url 'faqs:category' cat.slug %}" class="text-decoration-none">
-      <div class="card text-center h-100">
+      <div class="premium-card text-center h-100">
         <div class="card-body">
           <i class="bi {{ cat.icon|default:'bi-folder' }} fs-2 text-primary"></i>
           <h6 class="mt-2">{{ cat.name }}</h6>
@@ -47,12 +47,12 @@
 </div>
 
 <h2 class="h4 mb-3"><i class="bi bi-clock"></i> Recently Published</h2>
-<ul class="list-group">
+<div class="d-flex flex-column gap-2">
   {% for faq in recent %}
-  <li class="list-group-item d-flex justify-content-between">
-    <a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a>
+  <div class="premium-card p-3 d-flex justify-content-between align-items-center">
+    <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
     <small class="text-muted">{{ faq.published_at|date:"M d, Y" }}</small>
-  </li>
+  </div>
   {% endfor %}
-</ul>
+</div>
 {% endblock %}

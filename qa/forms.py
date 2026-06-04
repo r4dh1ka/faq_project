@@ -1,7 +1,14 @@
 from django import forms
 
 from config.utils import sanitize_html
-from .models import Answer, Question
+from .models import Answer, Question, Comment
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('body',)
+        widgets = {'body': forms.Textarea(attrs={'rows': 2, 'class': 'form-control mb-2', 'placeholder': 'Write a reply...'})}
 
 
 class QuestionForm(forms.ModelForm):

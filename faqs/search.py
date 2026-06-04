@@ -6,7 +6,7 @@ from .models import FAQ, ContentStatus, SearchLog
 
 
 def search_faqs(query='', category_slug='', tag='', sort='', user=None):
-    qs = FAQ.objects.filter(status=ContentStatus.PUBLISHED).select_related('category', 'author')
+    qs = FAQ.objects.filter(status=ContentStatus.PUBLISHED).select_related('category', 'author').prefetch_related('tags')
 
     if category_slug:
         qs = qs.filter(category__slug=category_slug)

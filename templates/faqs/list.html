@@ -14,12 +14,12 @@
       <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most Viewed</option>
     </select>
   </div>
-  <div class="col-md-1"><button class="btn btn-primary w-100">Go</button></div>
+  <div class="col-md-1"><button class="btn btn-primary w-100" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: none;">Go</button></div>
 </form>
 {% for faq in faqs %}
-<div class="card mb-3">
+<div class="premium-card mb-4 border-0 p-1">
   <div class="card-body">
-    <h5><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></h5>
+    <h5 class="fw-bold"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
     <p class="text-muted small">{{ faq.category }} · {{ faq.view_count }} views · Score: {{ faq.score }}</p>
     {% for tag in faq.tags.all %}<span class="badge bg-secondary">{{ tag }}</span>{% endfor %}
   </div>

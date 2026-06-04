@@ -7,26 +7,37 @@ from django.views.decorators.http import require_POST
 from community import services as community_services
 from community.models import Notification
 from faqs.search import find_similar_faqs
-from .forms import AnswerForm, QuestionForm
-from .models import Answer, AnswerVote, Question
+from faqs.models import ContentStatus
+from .forms import AnswerForm, QuestionForm, CommentForm
+from .models import Answer, AnswerVote, Question, QuestionVote, Comment, CommentVote
 
 
 def question_list(request):
+    sort = request.GET.get('sort', 'hot')
     questions = Question.objects.select_related('author', 'category').prefetch_related('tags')
-    return render(request, 'qa/question_list.html', {'questions': questions})
+    
+    if sort == 'top':
+        questions = questions.order_by('-upvote_count', '-created_at')
+    else:
+        questions = questions.order_by('-created_at')
+        
+    return render(request, 'qa/question_list.html', {'questions': questions, 'sort': sort})
 
 
 def question_detail(request, pk):
     question = get_object_or_404(Question, pk=pk)
-    Question.objects.filter(pk=question.pk).update(view_count=F('view_count') + 1)
-    answers = question.answers.select_related('author')
+    answers = question.answers.filter(status=ContentStatus.PUBLISHED).select_related('author').prefetch_related('comments__author', 'comments__replies')
+    similar_faqs = find_similar_faqs(question.title, limit=3)
+    question.view_count += 1
+    question.save(update_fields=['view_count'])
     form = AnswerForm() if request.user.is_authenticated else None
-    similar_faqs = find_similar_faqs(question.title, limit=4)
+    comment_form = CommentForm() if request.user.is_authenticated else None
     return render(request, 'qa/question_detail.html', {
         'question': question,
         'answers': answers,
-        'form': form,
         'similar_faqs': similar_faqs,
+        'form': form,
+        'comment_form': comment_form,
     })
 
 
@@ -39,11 +50,62 @@ def question_create(request):
             question.author = request.user
             question.save()
             form.save_m2m()
+            
+            # --- AI AUTO-ANSWER BOT ---
+            from assistant.services import generate_ai_response
+            from django.contrib.auth import get_user_model
+            
+            query = f"{question.title}\n{question.body}"
+            ai_response = generate_ai_response(query)
+            
+            # Avoid the fallback completely generic answer
+            if ai_response and ai_response.get('reply') and "I couldn't find a matching FAQ" not in ai_response.get('reply'):
+                User = get_user_model()
+                bot_user, _ = User.objects.get_or_create(
+                    username='YakshaBot',
+                    defaults={'email': 'yakshabot@faqplatform.local', 'is_staff': True}
+                )
+                
+                reply_text = ai_response['reply'].replace('\n', '<br>')
+                if ai_response.get('sources'):
+                    reply_text += "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
+                    for src in ai_response['sources']:
+                        reply_text += f"<li><a href='{src['url']}' class='text-decoration-none'>{src['title']}</a></li>"
+                    reply_text += "</ul>"
+                
+                Answer.objects.create(
+                    question=question,
+                    author=bot_user,
+                    body=reply_text,
+                    status=ContentStatus.PUBLISHED,
+                )
+            # ---------------------------
+            
             messages.success(request, 'Question posted.')
             return redirect('qa:question_detail', pk=question.pk)
     else:
         form = QuestionForm()
     return render(request, 'qa/question_form.html', {'form': form})
+
+
+@login_required
+@require_POST
+def question_vote(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    vote_type = int(request.POST.get('vote_type', 0))
+    if vote_type not in (1, -1):
+        return redirect('qa:question_detail', pk=question.pk)
+    QuestionVote.objects.update_or_create(
+        question=question, user=request.user, defaults={'vote_type': vote_type}
+    )
+    up = QuestionVote.objects.filter(question=question, vote_type=1).count()
+    down = QuestionVote.objects.filter(question=question, vote_type=-1).count()
+    Question.objects.filter(pk=question.pk).update(upvote_count=up, downvote_count=down)
+    
+    next_url = request.POST.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('qa:question_detail', pk=question.pk)
 
 
 @login_required
@@ -89,6 +151,43 @@ def answer_vote(request, pk):
             answer.question.get_absolute_url(),
         )
     return redirect('qa:question_detail', pk=answer.question_id)
+
+
+@login_required
+@require_POST
+def comment_create(request, pk):
+    answer = get_object_or_404(Answer, pk=pk)
+    parent_id = request.POST.get('parent_id')
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.answer = answer
+        if parent_id:
+            comment.parent_id = parent_id
+        comment.save()
+        messages.success(request, 'Your reply was posted.')
+    return redirect('qa:question_detail', pk=answer.question.pk)
+
+
+@login_required
+@require_POST
+def comment_vote(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    vote_type = int(request.POST.get('vote_type', 0))
+    if vote_type not in (1, -1):
+        return redirect('qa:question_detail', pk=comment.answer.question.pk)
+    CommentVote.objects.update_or_create(
+        comment=comment, user=request.user, defaults={'vote_type': vote_type}
+    )
+    up = CommentVote.objects.filter(comment=comment, vote_type=1).count()
+    down = CommentVote.objects.filter(comment=comment, vote_type=-1).count()
+    Comment.objects.filter(pk=comment.pk).update(upvote_count=up, downvote_count=down)
+    
+    next_url = request.POST.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('qa:question_detail', pk=comment.answer.question.pk)
 
 
 @login_required

@@ -77,6 +77,7 @@ if DATABASE_URL.startswith('postgres'):
                 'PASSWORD': password,
                 'HOST': host,
                 'PORT': port,
+                'CONN_MAX_AGE': 60,
             }
         }
     else:
@@ -145,3 +146,22 @@ BLEACH_ALLOWED_TAGS = [
     'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h2', 'h3', 'blockquote', 'code', 'pre',
 ]
 BLEACH_ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'rel']}
+
+# Caching Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'faq-cache',
+    }
+}
+REDIS_URL = config('REDIS_URL', default='')
+if REDIS_URL:
+    CACHES['default'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'

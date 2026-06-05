@@ -15,10 +15,10 @@ from .search import autocomplete_suggestions, detect_duplicate_question, find_si
 
 
 def home(request):
-    trending = FAQ.objects.filter(status=ContentStatus.PUBLISHED).order_by(
+    trending = FAQ.objects.filter(status=ContentStatus.PUBLISHED).select_related('category', 'author').prefetch_related('tags').order_by(
         '-view_count', '-upvote_count'
     )[:6]
-    recent = FAQ.objects.filter(status=ContentStatus.PUBLISHED).order_by('-published_at', '-created_at')[:6]
+    recent = FAQ.objects.filter(status=ContentStatus.PUBLISHED).select_related('category', 'author').prefetch_related('tags').order_by('-published_at', '-created_at')[:6]
     categories = Category.objects.all()[:8]
     return render(request, 'faqs/home.html', {
         'trending': trending,
@@ -56,7 +56,7 @@ def faq_detail(request, slug):
 
 def category_view(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    faqs = FAQ.objects.filter(category=category, status=ContentStatus.PUBLISHED)
+    faqs = FAQ.objects.filter(category=category, status=ContentStatus.PUBLISHED).select_related('author').prefetch_related('tags')
     return render(request, 'faqs/category.html', {'category': category, 'faqs': faqs})
 
 
@@ -100,7 +100,7 @@ def faq_edit_suggest(request, slug):
 
 @login_required
 def my_submissions(request):
-    faqs = FAQ.objects.filter(author=request.user)
+    faqs = FAQ.objects.filter(author=request.user).select_related('category').prefetch_related('tags')
     return render(request, 'faqs/my_submissions.html', {'faqs': faqs})
 
 
@@ -136,7 +136,7 @@ def toggle_bookmark(request, slug):
 
 @login_required
 def bookmarks(request):
-    items = Bookmark.objects.filter(user=request.user).select_related('faq')
+    items = Bookmark.objects.filter(user=request.user).select_related('faq__category', 'faq__author').prefetch_related('faq__tags')
     return render(request, 'faqs/bookmarks.html', {'bookmarks': items})
 
 
@@ -157,8 +157,8 @@ def duplicate_check(request):
 
 @moderator_required
 def pending_faqs(request):
-    pending = FAQ.objects.filter(status=ContentStatus.PENDING)
-    edits = FAQEditSuggestion.objects.filter(status=ContentStatus.PENDING)
+    pending = FAQ.objects.filter(status=ContentStatus.PENDING).select_related('category', 'author').prefetch_related('tags')
+    edits = FAQEditSuggestion.objects.filter(status=ContentStatus.PENDING).select_related('faq', 'suggested_by')
     return render(request, 'faqs/pending.html', {'pending': pending, 'edits': edits})
 
 

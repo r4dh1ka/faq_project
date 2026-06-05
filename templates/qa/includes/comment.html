@@ -1,0 +1,57 @@
+<div class="thread-container mt-2">
+  <!-- Comment Node -->
+  <div class="flex-grow-1">
+    <div class="reddit-header">
+      <i class="bi bi-person-circle reddit-avatar-placeholder"></i>
+      <span class="author">{{ comment.author.username }}</span>
+      <span class="time">• {{ comment.created_at|timesince }} ago</span>
+    </div>
+    
+    <div class="fs-6 mt-1 mb-1 text-light" style="font-size: 0.95rem !important;">{{ comment.body }}</div>
+    
+    {% if user.is_authenticated %}
+    <div class="reddit-action-bar">
+      <form action="{% url 'qa:comment_vote' comment.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="reddit-btn upvote" aria-label="Upvote" title="Upvote"><i class="bi bi-arrow-up-short fs-5"></i></button>
+      </form>
+      <span class="fw-bold" style="font-size: 0.8rem; color: #878a8c;">{{ comment.score }}</span>
+      <form action="{% url 'qa:comment_vote' comment.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="-1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="reddit-btn downvote" aria-label="Downvote" title="Downvote"><i class="bi bi-arrow-down-short fs-5"></i></button>
+      </form>
+      
+      <button class="reddit-btn ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyToComment{{ comment.pk }}">
+        <i class="bi bi-chat fs-6"></i> Reply
+      </button>
+      
+      <!-- Placeholder for Share/Award to match screenshot -->
+      <button class="reddit-btn ms-1" type="button" aria-label="Award" title="Award"><i class="bi bi-gift"></i> Award</button>
+      <button class="reddit-btn ms-1" type="button" aria-label="Share" title="Share" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!');"><i class="bi bi-share"></i> Share</button>
+    </div>
+    
+    <div class="collapse mt-2" id="replyToComment{{ comment.pk }}">
+      <form method="post" action="{% url 'qa:comment_create' comment.answer.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="parent_id" value="{{ comment.pk }}">
+        {{ comment_form.body }}
+        <button type="submit" class="btn btn-sm btn-light mt-2 rounded-pill fw-bold px-3">Reply</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Recursive Replies with Threadline -->
+  {% if comment.replies.exists %}
+  <div class="thread-children">
+    <div class="threadline" style="width: 1px; background-color: rgba(255,255,255,0.15);"></div>
+    {% for reply in comment.replies.all %}
+      {% include 'qa/includes/comment.html' with comment=reply %}
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

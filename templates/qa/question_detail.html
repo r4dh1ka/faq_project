@@ -2,9 +2,38 @@
 {% load crispy_forms_tags %}
 {% block title %}{{ question.title }}{% endblock %}
 {% block content %}
-<h1>{{ question.title }}</h1>
-<p class="text-muted">Asked by {{ question.author.username }} · {{ question.view_count }} views</p>
-<div class="mb-4">{{ question.body|safe }}</div>
+<div class="mb-4">
+  <div class="premium-card p-4">
+    <div class="comment-header text-muted mb-3">
+      <i class="bi bi-person-circle avatar-icon"></i>
+      <div>
+        <strong class="text-white fs-5">{{ question.author.username }}</strong><br>
+        <small>Asked {{ question.created_at|timesince }} ago · {{ question.view_count }} views</small>
+      </div>
+    </div>
+    <h1 class="mt-3">{{ question.title }}</h1>
+    <div class="mb-4 fs-5">{{ question.body|safe }}</div>
+    <div class="mt-3">
+      {% for tag in question.tags.all %}<span class="badge bg-secondary">{{ tag.name }}</span>{% endfor %}
+    </div>
+    
+    <div class="social-bar mt-4">
+      <form action="{% url 'qa:question_vote' question.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="social-btn like border-0 bg-transparent" aria-label="Upvote" title="Upvote">👍 Like <span class="badge bg-light text-dark ms-1">{{ question.upvote_count }}</span></button>
+      </form>
+      <form action="{% url 'qa:question_vote' question.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="-1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="social-btn dislike border-0 bg-transparent" aria-label="Downvote" title="Downvote">👎 Dislike <span class="badge bg-light text-dark ms-1">{{ question.downvote_count }}</span></button>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% if similar_faqs %}
 <h5>Related FAQs</h5>
 <ul>{% for f in similar_faqs %}<li><a href="{{ f.get_absolute_url }}">{{ f.title }}</a></li>{% endfor %}</ul>
@@ -12,30 +41,83 @@
 <hr>
 <h3>{{ answers|length }} Answers</h3>
 {% for answer in answers %}
-<div class="card mb-3 {% if answer.is_accepted %}border-success{% endif %}">
-  <div class="card-body">
-    {% if answer.is_accepted %}<span class="badge bg-success">Accepted</span>{% endif %}
-    <div>{{ answer.body|safe }}</div>
-    <small class="text-muted">{{ answer.author.username }} · Score: {{ answer.score }}</small>
+<div class="mb-4 mt-3">
+  <div class="flex-grow-1">
+    {% if answer.is_accepted %}<span class="badge bg-success mb-2"><i class="bi bi-check-circle-fill"></i> Accepted Answer</span>{% endif %}
+    <div class="reddit-header">
+      {% if answer.author.username == 'YakshaBot' %}
+        <i class="bi bi-robot text-primary reddit-avatar-placeholder" style="font-size: 1.4rem;"></i>
+        <span class="author text-primary">{{ answer.author.username }} <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">AI</span></span>
+      {% else %}
+        <i class="bi bi-person-circle reddit-avatar-placeholder"></i>
+        <span class="author">{{ answer.author.username }}</span>
+      {% endif %}
+      <span class="time">• {{ answer.created_at|timesince }} ago</span>
+    </div>
+    
+    <div class="fs-6 mt-1 mb-1 text-light" style="font-size: 0.95rem !important;">{{ answer.body|safe }}</div>
+    
     {% if user.is_authenticated %}
-    <div class="mt-2">
-      <form method="post" action="{% url 'qa:answer_vote' answer.pk %}" class="d-inline">{% csrf_token %}
-        <button name="vote_type" value="1" class="btn btn-sm btn-outline-success">▲ {{ answer.upvote_count }}</button>
-        <button name="vote_type" value="-1" class="btn btn-sm btn-outline-danger">▼ {{ answer.downvote_count }}</button>
+    <div class="reddit-action-bar">
+      <form action="{% url 'qa:answer_vote' answer.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="reddit-btn upvote" aria-label="Upvote" title="Upvote"><i class="bi bi-arrow-up-short fs-5"></i></button>
       </form>
+      <span class="fw-bold" style="font-size: 0.8rem; color: #878a8c;">{{ answer.score }}</span>
+      <form action="{% url 'qa:answer_vote' answer.pk %}" method="post" class="m-0">
+        {% csrf_token %}
+        <input type="hidden" name="vote_type" value="-1">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="reddit-btn downvote" aria-label="Downvote" title="Downvote"><i class="bi bi-arrow-down-short fs-5"></i></button>
+      </form>
+      
+      <button class="reddit-btn ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyToAnswer{{ answer.pk }}">
+        <i class="bi bi-chat fs-6"></i> Reply
+      </button>
+      
+      <!-- Placeholder for Share/Award to match screenshot -->
+      <button class="reddit-btn ms-1" type="button" aria-label="Award" title="Award"><i class="bi bi-gift"></i> Award</button>
+      <button class="reddit-btn ms-1" type="button" aria-label="Share" title="Share" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!');"><i class="bi bi-share"></i> Share</button>
+      
       {% if question.author == user and not answer.is_accepted %}
-      <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="d-inline">{% csrf_token %}
-        <button class="btn btn-sm btn-success">Accept</button>
+      <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="m-0 ms-auto">{% csrf_token %}
+        <button class="btn btn-sm btn-success rounded-pill px-3"><i class="bi bi-check-circle-fill"></i> Accept</button>
       </form>
       {% endif %}
+    </div>
+    
+    <!-- Reply form -->
+    <div class="collapse mt-2" id="replyToAnswer{{ answer.pk }}">
+      <form method="post" action="{% url 'qa:comment_create' answer.pk %}">
+        {% csrf_token %}
+        {{ comment_form.body }}
+        <button type="submit" class="btn btn-sm btn-light mt-2 rounded-pill fw-bold px-3">Reply</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Render Comments with Main Threadline -->
+  <div class="thread-container mt-2">
+    {% if answer.comments.exists %}
+    <div class="thread-children mt-0">
+      <div class="threadline" style="width: 1px; background-color: rgba(255,255,255,0.15);"></div>
+      {% for comment in answer.comments.all %}
+        {% if not comment.parent %}
+          {% include 'qa/includes/comment.html' with comment=comment %}
+        {% endif %}
+      {% endfor %}
     </div>
     {% endif %}
   </div>
 </div>
-{% empty %}<p>No answers yet. Be the first!</p>{% endfor %}
+{% empty %}<p class="text-muted">No answers yet. Be the first to answer!</p>{% endfor %}
 {% if form %}
+<hr>
 <h3>Your Answer</h3>
-<form method="post" action="{% url 'qa:answer_create' question.pk %}">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Post Answer</button></form>
+<form method="post" action="{% url 'qa:answer_create' question.pk %}" class="mt-3">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary mt-2">Post Answer</button></form>
 {% endif %}
-<a href="{% url 'moderation:report' 'qa' 'question' question.pk %}" class="btn btn-sm btn-outline-warning mt-3">Report</a>
+<a href="{% url 'moderation:report' 'qa' 'question' question.pk %}" class="btn btn-sm btn-outline-warning mt-4">Report Question</a>
 {% endblock %}

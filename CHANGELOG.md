@@ -15,5 +15,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Complete UI/UX Overhaul**: Upgraded from standard Bootstrap to a modern Glassmorphism design with a Deep Slate dark mode and glowing radial gradients.
-- **High-Concurrency DB Optimization**: Optimized `qa/views.py` with `select_related` and `prefetch_related` to eliminate N+1 query bottlenecks and support 2000-3000 concurrent users.
+- **High-Concurrency DB Optimization**: Optimized `qa/views.py` with `select_related` and `prefetch_related` to eliminate N+1 query bottlenecks and support high concurrency.
 - **Modern Typography**: Integrated Outfit and Inter web fonts for a premium SaaS aesthetic.

@@ -54,6 +54,7 @@ def question_create(request):
             # --- AI AUTO-ANSWER BOT ---
             from assistant.services import generate_ai_response
             from django.contrib.auth import get_user_model
+            from config.utils import sanitize_html
             
             query = f"{question.title}\n{question.body}"
             ai_response = generate_ai_response(query)
@@ -66,12 +67,13 @@ def question_create(request):
                     defaults={'email': 'yakshabot@faqplatform.local', 'is_staff': True}
                 )
                 
-                reply_text = ai_response['reply'].replace('\n', '<br>')
+                reply_text = sanitize_html(ai_response['reply'].replace('\n', '<br>'))
                 if ai_response.get('sources'):
-                    reply_text += "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
+                    sources_html = "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
                     for src in ai_response['sources']:
-                        reply_text += f"<li><a href='{src['url']}' class='text-decoration-none'>{src['title']}</a></li>"
-                    reply_text += "</ul>"
+                        sources_html += f"<li><a href='{src['url']}' class='text-decoration-none'>{src['title']}</a></li>"
+                    sources_html += "</ul>"
+                    reply_text += sanitize_html(sources_html)
                 
                 Answer.objects.create(
                     question=question,
@@ -164,7 +166,12 @@ def comment_create(request, pk):
         comment.author = request.user
         comment.answer = answer
         if parent_id:
-            comment.parent_id = parent_id
+            try:
+                parent = Comment.objects.get(pk=parent_id)
+                if parent.answer_id == answer.pk:
+                    comment.parent = parent
+            except Comment.DoesNotExist:
+                pass
         comment.save()
         messages.success(request, 'Your reply was posted.')
     return redirect('qa:question_detail', pk=answer.question.pk)

@@ -6,10 +6,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from faqs.models import Category, FAQ, ContentStatus
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils import timezone
+import sys
 
-file_path = r"C:\Users\ASUS\.gemini\antigravity-ide\brain\05e16666-2405-4dfb-b33d-2e64bd49f607\.system_generated\steps\15\content.md"
+file_path = sys.argv[1] if len(sys.argv) > 1 else 'data/content.md'
 
 def import_faqs():
     with open(file_path, "r", encoding="utf-8") as f:
@@ -17,7 +18,10 @@ def import_faqs():
 
     soup = BeautifulSoup(content, 'html.parser')
 
-    admin_user = User.objects.get(username='admin')
+    User = get_user_model()
+    admin_user = User.objects.filter(is_superuser=True).first()
+    if not admin_user:
+        admin_user, _ = User.objects.get_or_create(username='system_admin', defaults={'is_superuser': True, 'is_staff': True})
     current_category, _ = Category.objects.get_or_create(name="General Queries")
 
     count = 0
@@ -46,18 +50,17 @@ def import_faqs():
                     answer_parts.append(str(sibling))
                 answer_html = "".join(answer_parts)
                 
-                _, created = FAQ.objects.get_or_create(
-                    title=title,
-                    defaults={
-                        'question': title,
-                        'answer': answer_html,
-                        'category': current_category,
-                        'author': admin_user,
-                        'status': ContentStatus.PUBLISHED,
-                        'published_at': timezone.now(),
-                    }
-                )
-                if created:
+                faq_obj = FAQ.objects.filter(title=title, category=current_category).first()
+                if not faq_obj:
+                    FAQ.objects.create(
+                        title=title,
+                        question=title,
+                        answer=answer_html,
+                        category=current_category,
+                        author=admin_user,
+                        status=ContentStatus.PUBLISHED,
+                        published_at=timezone.now(),
+                    )
                     count += 1
 
     print(f"Successfully imported {count} new FAQs!")

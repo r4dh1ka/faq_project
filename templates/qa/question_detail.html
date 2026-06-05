@@ -22,13 +22,13 @@
         {% csrf_token %}
         <input type="hidden" name="vote_type" value="1">
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="social-btn like border-0 bg-transparent">👍 Like <span class="badge bg-light text-dark ms-1">{{ question.upvote_count }}</span></button>
+        <button type="submit" class="social-btn like border-0 bg-transparent" aria-label="Upvote" title="Upvote">👍 Like <span class="badge bg-light text-dark ms-1">{{ question.upvote_count }}</span></button>
       </form>
       <form action="{% url 'qa:question_vote' question.pk %}" method="post" class="m-0">
         {% csrf_token %}
         <input type="hidden" name="vote_type" value="-1">
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="social-btn dislike border-0 bg-transparent">👎 Dislike <span class="badge bg-light text-dark ms-1">{{ question.downvote_count }}</span></button>
+        <button type="submit" class="social-btn dislike border-0 bg-transparent" aria-label="Downvote" title="Downvote">👎 Dislike <span class="badge bg-light text-dark ms-1">{{ question.downvote_count }}</span></button>
       </form>
     </div>
   </div>
@@ -63,14 +63,14 @@
         {% csrf_token %}
         <input type="hidden" name="vote_type" value="1">
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="reddit-btn upvote"><i class="bi bi-arrow-up-short fs-5"></i></button>
+        <button type="submit" class="reddit-btn upvote" aria-label="Upvote" title="Upvote"><i class="bi bi-arrow-up-short fs-5"></i></button>
       </form>
       <span class="fw-bold" style="font-size: 0.8rem; color: #878a8c;">{{ answer.score }}</span>
       <form action="{% url 'qa:answer_vote' answer.pk %}" method="post" class="m-0">
         {% csrf_token %}
         <input type="hidden" name="vote_type" value="-1">
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="reddit-btn downvote"><i class="bi bi-arrow-down-short fs-5"></i></button>
+        <button type="submit" class="reddit-btn downvote" aria-label="Downvote" title="Downvote"><i class="bi bi-arrow-down-short fs-5"></i></button>
       </form>
       
       <button class="reddit-btn ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyToAnswer{{ answer.pk }}">
@@ -78,8 +78,8 @@
       </button>
       
       <!-- Placeholder for Share/Award to match screenshot -->
-      <button class="reddit-btn ms-1" type="button"><i class="bi bi-gift"></i> Award</button>
-      <button class="reddit-btn ms-1" type="button"><i class="bi bi-share"></i> Share</button>
+      <button class="reddit-btn ms-1" type="button" aria-label="Award" title="Award"><i class="bi bi-gift"></i> Award</button>
+      <button class="reddit-btn ms-1" type="button" aria-label="Share" title="Share" onclick="navigator.clipboard.writeText(window.location.href); alert('Link copied!');"><i class="bi bi-share"></i> Share</button>
       
       {% if question.author == user and not answer.is_accepted %}
       <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="m-0 ms-auto">{% csrf_token %}

@@ -9,10 +9,13 @@ from faqs.models import Category, FAQ, ContentStatus
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 import sys
+import os
 
 file_path = sys.argv[1] if len(sys.argv) > 1 else 'data/content.md'
 
 def import_faqs():
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"Input file not found: {file_path}")
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -21,7 +24,7 @@ def import_faqs():
     User = get_user_model()
     admin_user = User.objects.filter(is_superuser=True).first()
     if not admin_user:
-        admin_user, _ = User.objects.get_or_create(username='system_admin', defaults={'is_superuser': True, 'is_staff': True})
+        admin_user = User.objects.filter(is_staff=True).first()
     current_category, _ = Category.objects.get_or_create(name="General Queries")
 
     count = 0

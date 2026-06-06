@@ -33,8 +33,32 @@ def retrieve_faq_context(query: str, limit: int = 5) -> list[dict]:
     return results
 
 
+def extract_formal_intent(query: str) -> str:
+    if not settings.OPENAI_API_KEY:
+        return query
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        prompt = f"""You are a translator for a university FAQ system.
+The user might type in Hinglish, GenZ slang, or casual English.
+Translate their query into a short, formal English search query (maximum 5-7 words).
+Only return the translated search query, nothing else.
+
+User query: {query}"""
+        response = client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[{'role': 'user', 'content': prompt}],
+            max_tokens=20,
+            temperature=0.3,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception:
+        return query
+
+
 def generate_ai_response(user_message: str) -> dict:
-    context = retrieve_faq_context(user_message)
+    formal_intent = extract_formal_intent(user_message)
+    context = retrieve_faq_context(formal_intent)
     sources = [{'title': c['title'], 'url': c['url']} for c in context]
 
     if settings.OPENAI_API_KEY:
@@ -47,6 +71,9 @@ def generate_ai_response(user_message: str) -> dict:
             prompt = f"""You are Yaksha, an FAQ assistant for a crowdsourced knowledge platform.
 Answer using ONLY the FAQ context below. Cite FAQ titles when relevant.
 If the context does not contain the answer, say so and suggest browsing or asking the community.
+
+CRITICAL TONE MATCHING INSTRUCTION:
+Analyze the tone of the user's question. If they are speaking in Hinglish, GenZ slang, or very casual language, you MUST reply using the exact same tone, slang, and vocabulary, while delivering the factual information from the FAQ. If they speak formally, reply formally.
 
 FAQ Context:
 {context_text}

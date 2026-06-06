@@ -143,9 +143,15 @@ OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')
 
 # Rich text sanitization
 BLEACH_ALLOWED_TAGS = [
-    'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h2', 'h3', 'blockquote', 'code', 'pre',
+    'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h2', 'h3', 'blockquote', 'code', 'pre', 'span'
 ]
-BLEACH_ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'rel']}
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title', 'rel'],
+    'pre': ['class'],
+    'code': ['class'],
+    'p': ['style', 'class'],
+    'span': ['style', 'class']
+}
 
 # Caching Configuration
 CACHES = {

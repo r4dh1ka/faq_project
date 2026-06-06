@@ -63,7 +63,8 @@
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">{{ user.username }}</a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
-              <li><a class="dropdown-item" href="{% url 'faqs:bookmarks' %}">Bookmarks</a></li>
+              <li><a class="dropdown-item" href="{% url 'faqs:bookmarks' %}">FAQ Bookmarks</a></li>
+              <li><a class="dropdown-item" href="{% url 'qa:bookmarks' %}">Question Bookmarks</a></li>
               <li><a class="dropdown-item" href="{% url 'faqs:my_submissions' %}">My Submissions</a></li>
               <li><a class="dropdown-item" href="{% url 'faqs:create' %}">Submit FAQ</a></li>
               <li><hr class="dropdown-divider"></li>

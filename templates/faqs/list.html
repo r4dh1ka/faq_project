@@ -1,30 +1,67 @@
 {% extends 'base.html' %}
-{% block title %}Browse FAQs{% endblock %}
+{% block title %}Browse & Search{% endblock %}
 {% block content %}
-<h1>Browse FAQs</h1>
-<form method="get" class="row g-2 mb-4">
-  <div class="col-md-4"><input name="q" class="form-control" placeholder="Keyword search" value="{{ form.q.value|default:'' }}"></div>
-  <div class="col-md-3"><input name="category" class="form-control" placeholder="Category slug" value="{{ form.category.value|default:'' }}"></div>
-  <div class="col-md-2"><input name="tag" class="form-control" placeholder="Tag" value="{{ form.tag.value|default:'' }}"></div>
-  <div class="col-md-2">
-    <select name="sort" class="form-select">
-      <option value="">Sort</option>
-      <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
-      <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>
-      <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most Viewed</option>
-    </select>
+<h1 class="mb-2">Search Knowledge Base</h1>
+<p class="text-muted mb-4">Full-text search across FAQ titles, answers, tags, and community questions.</p>
+
+<form method="get" class="premium-card p-4 mb-4">
+  <div class="row g-3">
+    <div class="col-md-5">
+      <label class="form-label small text-muted">Keywords</label>
+      <input name="q" class="form-control" placeholder="Search title, answer, tags..." value="{{ form.q.value|default:search_query }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted">Category (slug)</label>
+      <input name="category" class="form-control" placeholder="e.g. hostel" value="{{ form.category.value|default:'' }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small text-muted">Tag</label>
+      <input name="tag" class="form-control" placeholder="wifi" value="{{ form.tag.value|default:'' }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small text-muted">Sort</label>
+      <select name="sort" class="form-select">
+        <option value="">Relevance / Popular</option>
+        <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
+        <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>
+        <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most Viewed</option>
+        <option value="title" {% if form.sort.value == 'title' %}selected{% endif %}>Title A–Z</option>
+      </select>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary rounded-pill px-4" type="submit"><i class="bi bi-search"></i> Search</button>
+      <a href="{% url 'faqs:list' %}" class="btn btn-outline-secondary ms-2">Clear</a>
+    </div>
   </div>
-  <div class="col-md-1"><button class="btn btn-primary w-100" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: none;">Go</button></div>
 </form>
+
+{% if search_query %}
+<p class="text-muted">Showing results for <strong>{{ search_query }}</strong></p>
+{% endif %}
+
+<h2 class="h5 mb-3">FAQs <span class="badge bg-primary">{{ faqs|length }}</span></h2>
 {% for faq in faqs %}
-<div class="premium-card mb-4 border-0 p-1">
-  <div class="card-body">
-    <h5 class="fw-bold"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
-    <p class="text-muted small">{{ faq.category }} · {{ faq.view_count }} views · Score: {{ faq.score }}</p>
-    {% for tag in faq.tags.all %}<span class="badge bg-secondary">{{ tag }}</span>{% endfor %}
-  </div>
+<div class="premium-card mb-3 p-3">
+  <h5 class="fw-bold mb-1"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
+  <p class="text-muted small mb-2">
+    {% if faq.category %}{{ faq.category }}{% endif %}
+    {% if faq.subcategory %} › {{ faq.subcategory.name }}{% endif %}
+    · {{ faq.view_count }} views · Score {{ faq.score }}
+  </p>
+  {% for tag in faq.tags.all %}<span class="badge bg-secondary me-1">{{ tag }}</span>{% endfor %}
 </div>
 {% empty %}
-<p>No FAQs match your search.</p>
+<p class="text-muted">No FAQs match your search.</p>
 {% endfor %}
+
+{% if community_questions %}
+<hr class="my-4">
+<h2 class="h5 mb-3">Community Questions <span class="badge bg-secondary">{{ community_questions|length }}</span></h2>
+{% for q in community_questions %}
+<div class="premium-card mb-3 p-3">
+  <h5 class="mb-1"><a href="{{ q.get_absolute_url }}" class="text-decoration-none">{{ q.title }}</a></h5>
+  <p class="text-muted small mb-0">{{ q.author.username }} · {{ q.view_count }} views · {{ q.answer_count }} answers</p>
+</div>
+{% endfor %}
+{% endif %}
 {% endblock %}

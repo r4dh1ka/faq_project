@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Bookmarked Questions{% endblock %}
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-bookmark-fill"></i> Bookmarked Questions</h1>
+{% for item in bookmarks %}
+<div class="premium-card p-3 mb-2 d-flex justify-content-between align-items-center">
+  <div>
+    <a href="{{ item.question.get_absolute_url }}" class="fw-bold text-decoration-none">{{ item.question.title }}</a>
+    <div class="small text-muted">{% if item.question.category %}{{ item.question.category }}{% else %}Uncategorized{% endif %} · {{ item.created_at|date:"M d, Y" }}</div>
+  </div>
+  <span class="badge bg-secondary">{{ item.question.answer_count }} answers</span>
+</div>
+{% empty %}
+<p class="text-muted">No bookmarked questions yet. Browse <a href="{% url 'qa:question_list' %}">Q&amp;A</a>.</p>
+{% endfor %}
+{% endblock %}

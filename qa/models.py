@@ -37,6 +37,34 @@ class Question(models.Model):
     def score(self):
         return self.upvote_count - self.downvote_count
 
+    @property
+    def image_count(self):
+        return self.images.count()
+
+
+class QuestionImage(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='question_images/%Y/%m/')
+    caption = models.CharField(max_length=255, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'uploaded_at']
+
+    def __str__(self):
+        return f'Image for {self.question.title}'
+
+
+class QuestionBookmark(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='question_bookmarks')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='bookmarked_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'question')
+        ordering = ['-created_at']
+
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
@@ -58,6 +86,20 @@ class Answer(models.Model):
     @property
     def score(self):
         return self.upvote_count - self.downvote_count
+
+
+class AnswerImage(models.Model):
+    answer = models.ForeignKey(Answer, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='answer_images/%Y/%m/')
+    caption = models.CharField(max_length=255, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'uploaded_at']
+
+    def __str__(self):
+        return f'Image for answer on {self.answer.question.title}'
 
 
 class QuestionVote(models.Model):

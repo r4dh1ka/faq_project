@@ -36,8 +36,26 @@
     {% endif %}
   </div>
 </article>
-{% if related %}
-<h3>Related FAQs</h3>
-<ul>{% for r in related %}<li><a href="{% url 'faqs:detail' r.slug %}">{{ r.title }}</a></li>{% endfor %}</ul>
-{% endif %}
+<div class="row mt-4">
+  {% if related %}
+  <div class="col-md-6">
+    <h3 class="h5">Related FAQs</h3>
+    <ul class="list-group list-group-flush premium-card p-2">
+      {% for r in related %}
+      <li class="list-group-item bg-transparent border-0"><a href="{% url 'faqs:detail' r.slug %}">{{ r.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% if related_questions %}
+  <div class="col-md-6">
+    <h3 class="h5">Related Questions</h3>
+    <ul class="list-group list-group-flush premium-card p-2">
+      {% for q in related_questions %}
+      <li class="list-group-item bg-transparent border-0"><a href="{{ q.get_absolute_url }}">{{ q.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

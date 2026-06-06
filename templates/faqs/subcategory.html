@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ subcategory.name }} — {{ category.name }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'faqs:home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'faqs:category' category.slug %}">{{ category.name }}</a></li>
+    <li class="breadcrumb-item active">{{ subcategory.name }}</li>
+  </ol>
+</nav>
+<h1>{{ subcategory.name }}</h1>
+<p class="text-muted">{{ category.name }} · {{ faqs|length }} FAQs</p>
+<div class="list-group">
+  {% for faq in faqs %}
+  <a href="{% url 'faqs:detail' faq.slug %}" class="list-group-item list-group-item-action premium-card mb-2 border-0">
+    <div class="fw-bold">{{ faq.title }}</div>
+    <small class="text-muted">{{ faq.view_count }} views · Score {{ faq.score }}</small>
+  </a>
+  {% empty %}
+  <p>No FAQs in this section.</p>
+  {% endfor %}
+</div>
+{% endblock %}

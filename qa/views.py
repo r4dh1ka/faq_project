@@ -1,43 +1,115 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import F
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from community import services as community_services
 from community.models import Notification
-from faqs.search import find_similar_faqs
+from faqs.search import find_similar_faqs, find_similar_questions
 from faqs.models import ContentStatus
 from .forms import AnswerForm, QuestionForm, CommentForm
-from .models import Answer, AnswerVote, Question, QuestionVote, Comment, CommentVote
+from .models import (
+    Answer, AnswerImage, AnswerVote, Question, QuestionBookmark, QuestionImage,
+    QuestionVote, Comment, CommentVote,
+)
+
+MAX_IMAGES = 5
+
+
+def _is_valid_image(upload):
+    if not upload.content_type.startswith('image/'):
+        return False
+    from PIL import Image
+    try:
+        img = Image.open(upload)
+        img.verify()
+        upload.seek(0)
+        return True
+    except Exception:
+        return False
+
+def _save_question_images(question, files):
+    idx = 0
+    for uploaded in files:
+        if _is_valid_image(uploaded):
+            QuestionImage.objects.create(question=question, image=uploaded, order=idx)
+            idx += 1
+            if idx >= MAX_IMAGES: break
+
+
+def _save_answer_images(answer, files):
+    idx = 0
+    for uploaded in files:
+        if _is_valid_image(uploaded):
+            AnswerImage.objects.create(answer=answer, image=uploaded, order=idx)
+            idx += 1
+            if idx >= MAX_IMAGES: break
 
 
 def question_list(request):
     sort = request.GET.get('sort', 'hot')
-    questions = Question.objects.select_related('author', 'category').prefetch_related('tags')
-    
+    q = request.GET.get('q', '').strip()
+    category_slug = request.GET.get('category', '')
+    tag = request.GET.get('tag', '').strip()
+
+    questions = Question.objects.filter(status=ContentStatus.PUBLISHED).select_related(
+        'author', 'category'
+    ).prefetch_related('tags', 'images')
+
+    if q:
+        questions = questions.filter(
+            Q(title__icontains=q) | Q(body__icontains=q) | Q(tags__name__icontains=q)
+        ).distinct()
+    if category_slug:
+        questions = questions.filter(category__slug=category_slug)
+    if tag:
+        questions = questions.filter(tags__name__iexact=tag)
+
     if sort == 'top':
         questions = questions.order_by('-upvote_count', '-created_at')
+    elif sort == 'views':
+        questions = questions.order_by('-view_count', '-created_at')
+    elif sort == 'unanswered':
+        questions = questions.filter(is_answered=False).order_by('-created_at')
     else:
         questions = questions.order_by('-created_at')
-        
-    return render(request, 'qa/question_list.html', {'questions': questions, 'sort': sort})
+
+    return render(request, 'qa/question_list.html', {
+        'questions': questions[:100],
+        'sort': sort,
+        'search_query': q,
+        'category_slug': category_slug,
+        'tag': tag,
+    })
 
 
 def question_detail(request, pk):
-    question = get_object_or_404(Question, pk=pk)
-    answers = question.answers.filter(status=ContentStatus.PUBLISHED).select_related('author').prefetch_related('comments__author', 'comments__replies')
-    similar_faqs = find_similar_faqs(question.title, limit=3)
+    question = get_object_or_404(
+        Question.objects.select_related('author', 'category').prefetch_related('tags', 'images'),
+        pk=pk,
+    )
+    answers = question.answers.filter(status=ContentStatus.PUBLISHED).select_related(
+        'author'
+    ).prefetch_related('comments__author', 'comments__replies', 'images')
+    similar_faqs = find_similar_faqs(question.title, limit=5)
+    related_questions = find_similar_questions(question.title, exclude_pk=question.pk, limit=5)
+    Question.objects.filter(pk=question.pk).update(view_count=F('view_count') + 1)
     question.view_count += 1
-    question.save(update_fields=['view_count'])
     form = AnswerForm() if request.user.is_authenticated else None
     comment_form = CommentForm() if request.user.is_authenticated else None
+    bookmarked = False
+    if request.user.is_authenticated:
+        bookmarked = QuestionBookmark.objects.filter(user=request.user, question=question).exists()
     return render(request, 'qa/question_detail.html', {
         'question': question,
         'answers': answers,
         'similar_faqs': similar_faqs,
+        'related_questions': related_questions,
         'form': form,
         'comment_form': comment_form,
+        'bookmarked': bookmarked,
+        'max_images': MAX_IMAGES,
     })
 
 
@@ -50,44 +122,50 @@ def question_create(request):
             question.author = request.user
             question.save()
             form.save_m2m()
-            
-            # --- AI AUTO-ANSWER BOT ---
+            images = request.FILES.getlist('images')
+            if images:
+                _save_question_images(question, images)
+
             from assistant.services import generate_ai_response
             from django.contrib.auth import get_user_model
             from config.utils import sanitize_html
-            
+
             query = f"{question.title}\n{question.body}"
             ai_response = generate_ai_response(query)
-            
-            # Avoid the fallback completely generic answer
+
             if ai_response and ai_response.get('reply') and "I couldn't find a matching FAQ" not in ai_response.get('reply'):
                 User = get_user_model()
                 bot_user, _ = User.objects.get_or_create(
                     username='YakshaBot',
                     defaults={'email': 'yakshabot@faqplatform.local', 'is_staff': True}
                 )
-                
+
+                from urllib.parse import urlparse
+                from django.utils.html import escape
                 reply_text = sanitize_html(ai_response['reply'].replace('\n', '<br>'))
                 if ai_response.get('sources'):
                     sources_html = "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
                     for src in ai_response['sources']:
-                        sources_html += f"<li><a href='{src['url']}' class='text-decoration-none'>{src['title']}</a></li>"
+                        parsed_url = urlparse(src['url'])
+                        if parsed_url.scheme in ('http', 'https', 'mailto') or (parsed_url.scheme == '' and parsed_url.netloc == ''):
+                            safe_url = escape(src['url'])
+                            safe_title = escape(src.get('title', ''))
+                            sources_html += f"<li><a href='{safe_url}' class='text-decoration-none'>{safe_title}</a></li>"
                     sources_html += "</ul>"
                     reply_text += sanitize_html(sources_html)
-                
+
                 Answer.objects.create(
                     question=question,
                     author=bot_user,
                     body=reply_text,
                     status=ContentStatus.PUBLISHED,
                 )
-            # ---------------------------
-            
+
             messages.success(request, 'Question posted.')
             return redirect('qa:question_detail', pk=question.pk)
     else:
         form = QuestionForm()
-    return render(request, 'qa/question_form.html', {'form': form})
+    return render(request, 'qa/question_form.html', {'form': form, 'max_images': MAX_IMAGES})
 
 
 @login_required
@@ -103,11 +181,35 @@ def question_vote(request, pk):
     up = QuestionVote.objects.filter(question=question, vote_type=1).count()
     down = QuestionVote.objects.filter(question=question, vote_type=-1).count()
     Question.objects.filter(pk=question.pk).update(upvote_count=up, downvote_count=down)
-    
+
+    from django.utils.http import url_has_allowed_host_and_scheme
     next_url = request.POST.get('next')
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(next_url)
     return redirect('qa:question_detail', pk=question.pk)
+
+
+@login_required
+@require_POST
+def toggle_question_bookmark(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    bookmark, created = QuestionBookmark.objects.get_or_create(user=request.user, question=question)
+    if not created:
+        bookmark.delete()
+        messages.info(request, 'Question removed from bookmarks.')
+    else:
+        messages.success(request, 'Question saved to bookmarks.')
+    return redirect('qa:question_detail', pk=pk)
+
+
+@login_required
+def question_bookmarks(request):
+    items = QuestionBookmark.objects.filter(user=request.user).select_related(
+        'question__author', 'question__category'
+    ).prefetch_related('question__tags')
+    return render(request, 'qa/bookmarks.html', {'bookmarks': items})
 
 
 @login_required
@@ -120,6 +222,9 @@ def answer_create(request, pk):
         answer.question = question
         answer.author = request.user
         answer.save()
+        images = request.FILES.getlist('images')
+        if images:
+            _save_answer_images(answer, images)
         community_services.award_answer_points(answer)
         community_services.notify(
             question.author,
@@ -190,9 +295,12 @@ def comment_vote(request, pk):
     up = CommentVote.objects.filter(comment=comment, vote_type=1).count()
     down = CommentVote.objects.filter(comment=comment, vote_type=-1).count()
     Comment.objects.filter(pk=comment.pk).update(upvote_count=up, downvote_count=down)
-    
+
+    from django.utils.http import url_has_allowed_host_and_scheme
     next_url = request.POST.get('next')
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(next_url)
     return redirect('qa:question_detail', pk=comment.answer.question.pk)
 

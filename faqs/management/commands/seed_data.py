@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -38,32 +38,21 @@ class Command(BaseCommand):
                 'name': name, 'description': desc, 'threshold': threshold,
             })
 
-        admin_user, created = User.objects.get_or_create(
-            username='admin',
-            defaults={'email': 'admin@example.com', 'is_staff': True, 'is_superuser': True},
-        )
-        if created:
-            admin_user.set_password('admin123')
-            admin_user.save()
-        profile, _ = UserProfile.objects.get_or_create(user=admin_user)
-        profile.role = Role.ADMIN
-        profile.save()
+        User = get_user_model()
+        admin_user = User.objects.filter(is_superuser=True).first()
+        if not admin_user:
+            admin_user = User.objects.filter(is_staff=True).first()
+        
+        if admin_user:
+            profile, _ = UserProfile.objects.get_or_create(user=admin_user)
+            profile.role = Role.ADMIN
+            profile.save()
 
-        mod_user, created = User.objects.get_or_create(
-            username='moderator',
-            defaults={'email': 'mod@example.com'},
-        )
-        if created:
-            mod_user.set_password('mod123')
-            mod_user.save()
-        mp, _ = UserProfile.objects.get_or_create(user=mod_user)
-        mp.role = Role.MODERATOR
-        mp.save()
-
-        demo, created = User.objects.get_or_create(username='demo', defaults={'email': 'demo@example.com'})
-        if created:
-            demo.set_password('demo123')
-            demo.save()
+        mod_user = User.objects.filter(is_staff=True).exclude(pk=admin_user.pk if admin_user else None).first()
+        if mod_user:
+            mp, _ = UserProfile.objects.get_or_create(user=mod_user)
+            mp.role = Role.MODERATOR
+            mp.save()
 
         academics = Category.objects.get(name='Academics')
         placements = Category.objects.get(name='Placements')
@@ -297,6 +286,6 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(self.style.SUCCESS(
-            'Seed data created. Users: admin/admin123, moderator/mod123, demo/demo123. '
+            'Seed data created successfully. '
             'Added 70 FAQs across Internship, Yaksha AI, Spurti Points, and Community & Platform categories.'
         ))

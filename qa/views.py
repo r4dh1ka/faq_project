@@ -18,7 +18,16 @@ MAX_IMAGES = 5
 
 
 def _is_valid_image(upload):
-    return upload.content_type.startswith('image/')
+    if not upload.content_type.startswith('image/'):
+        return False
+    from PIL import Image
+    try:
+        img = Image.open(upload)
+        img.verify()
+        upload.seek(0)
+        return True
+    except Exception:
+        return False
 
 def _save_question_images(question, files):
     idx = 0

@@ -123,7 +123,15 @@ def find_similar_questions(text, limit=5, threshold=0.5, exclude_pk=None):
 
 
 def detect_duplicate_question(title, threshold=0.7):
+    from difflib import SequenceMatcher
     faqs = find_similar_faqs(title, limit=3, threshold=threshold)
     questions = find_similar_questions(title, limit=3, threshold=threshold)
     combined = faqs + questions
-    return combined[:3]
+    
+    text_lower = title.lower()
+    scored = []
+    for item in combined:
+        ratio = SequenceMatcher(None, text_lower, item.title.lower()).ratio()
+        scored.append((ratio, item))
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return [item for _, item in scored[:3]]

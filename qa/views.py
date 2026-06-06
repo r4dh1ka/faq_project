@@ -147,7 +147,7 @@ def question_create(request):
                     sources_html = "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
                     for src in ai_response['sources']:
                         parsed_url = urlparse(src['url'])
-                        if parsed_url.scheme in ('http', 'https', 'mailto', ''):
+                        if parsed_url.scheme in ('http', 'https', 'mailto') or (parsed_url.scheme == '' and parsed_url.netloc == ''):
                             safe_url = escape(src['url'])
                             safe_title = escape(src.get('title', ''))
                             sources_html += f"<li><a href='{safe_url}' class='text-decoration-none'>{safe_title}</a></li>"

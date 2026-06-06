@@ -6,10 +6,11 @@
 
     input.addEventListener('change', function () {
       preview.innerHTML = '';
-      const files = Array.from(input.files).slice(0, maxImages || 5);
-      if (files.length > (maxImages || 5)) {
+      const allFiles = Array.from(input.files);
+      if (allFiles.length > (maxImages || 5)) {
         alert('Maximum ' + (maxImages || 5) + ' images allowed.');
       }
+      const files = allFiles.slice(0, maxImages || 5);
       files.forEach(function (file, index) {
         if (!file.type.startsWith('image/')) return;
         const col = document.createElement('div');
@@ -18,7 +19,11 @@
         card.className = 'image-preview-card';
         const img = document.createElement('img');
         img.alt = 'Preview ' + (index + 1);
-        img.src = URL.createObjectURL(file);
+        const objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+        img.onload = function() {
+            URL.revokeObjectURL(objectUrl);
+        };
         const label = document.createElement('small');
         label.className = 'text-muted d-block mt-1 text-truncate';
         label.textContent = file.name;

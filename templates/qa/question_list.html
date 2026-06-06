@@ -4,10 +4,10 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
   <h1 class="mb-0">Community Questions</h1>
   <div class="d-flex flex-wrap gap-2 align-items-center">
-    <a href="?sort=hot{% if search_query %}&q={{ search_query|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'hot' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Hot</a>
-    <a href="?sort=top" class="btn btn-sm {% if sort == 'top' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Top</a>
-    <a href="?sort=views" class="btn btn-sm {% if sort == 'views' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Most Viewed</a>
-    <a href="?sort=unanswered" class="btn btn-sm {% if sort == 'unanswered' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Unanswered</a>
+    <a href="?sort=hot{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'hot' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Hot</a>
+    <a href="?sort=top{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'top' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Top</a>
+    <a href="?sort=views{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'views' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Most Viewed</a>
+    <a href="?sort=unanswered{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'unanswered' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Unanswered</a>
     <a href="{% url 'qa:question_create' %}" class="btn btn-primary">Ask Question</a>
   </div>
 </div>

@@ -52,7 +52,13 @@ class Subcategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            base = slugify(self.name)[:120] or 'subcat'
+            slug = base
+            n = 1
+            while Subcategory.objects.filter(category=self.category, slug=slug).exclude(pk=self.pk).exists():
+                slug = f'{base}-{n}'
+                n += 1
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -92,7 +98,13 @@ class FAQ(models.Model):
         verbose_name = 'FAQ'
         verbose_name_plural = 'FAQs'
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.subcategory and self.category and self.subcategory.category != self.category:
+            raise ValidationError({'subcategory': 'Subcategory must belong to the selected category.'})
+
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.slug:
             base = slugify(self.title)[:200] or 'faq'
             slug = base

@@ -17,14 +17,25 @@ from .models import (
 MAX_IMAGES = 5
 
 
+def _is_valid_image(upload):
+    return upload.content_type.startswith('image/')
+
 def _save_question_images(question, files):
-    for idx, uploaded in enumerate(files[:MAX_IMAGES]):
-        QuestionImage.objects.create(question=question, image=uploaded, order=idx)
+    idx = 0
+    for uploaded in files:
+        if _is_valid_image(uploaded):
+            QuestionImage.objects.create(question=question, image=uploaded, order=idx)
+            idx += 1
+            if idx >= MAX_IMAGES: break
 
 
 def _save_answer_images(answer, files):
-    for idx, uploaded in enumerate(files[:MAX_IMAGES]):
-        AnswerImage.objects.create(answer=answer, image=uploaded, order=idx)
+    idx = 0
+    for uploaded in files:
+        if _is_valid_image(uploaded):
+            AnswerImage.objects.create(answer=answer, image=uploaded, order=idx)
+            idx += 1
+            if idx >= MAX_IMAGES: break
 
 
 def question_list(request):
@@ -74,8 +85,8 @@ def question_detail(request, pk):
     ).prefetch_related('comments__author', 'comments__replies', 'images')
     similar_faqs = find_similar_faqs(question.title, limit=5)
     related_questions = find_similar_questions(question.title, exclude_pk=question.pk, limit=5)
+    Question.objects.filter(pk=question.pk).update(view_count=F('view_count') + 1)
     question.view_count += 1
-    question.save(update_fields=['view_count'])
     form = AnswerForm() if request.user.is_authenticated else None
     comment_form = CommentForm() if request.user.is_authenticated else None
     bookmarked = False

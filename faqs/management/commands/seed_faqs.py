@@ -1,5 +1,5 @@
 import random
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.text import slugify
@@ -29,14 +29,10 @@ class Command(BaseCommand):
             self.stdout.write(f'Would process {len(entries)} FAQ entries')
             return
 
+        User = get_user_model()
         admin = User.objects.filter(is_superuser=True).first()
         if not admin:
             admin = User.objects.filter(is_staff=True).first()
-        if not admin:
-            admin, _ = User.objects.get_or_create(
-                username='admin',
-                defaults={'email': 'admin@example.com', 'is_staff': True, 'is_superuser': True},
-            )
 
         if options['clear']:
             deleted, _ = FAQ.objects.filter(status=ContentStatus.PUBLISHED).delete()

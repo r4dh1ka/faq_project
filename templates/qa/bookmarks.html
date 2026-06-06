@@ -6,7 +6,7 @@
 <div class="premium-card p-3 mb-2 d-flex justify-content-between align-items-center">
   <div>
     <a href="{{ item.question.get_absolute_url }}" class="fw-bold text-decoration-none">{{ item.question.title }}</a>
-    <div class="small text-muted">{{ item.question.category }} · {{ item.created_at|date:"M d, Y" }}</div>
+    <div class="small text-muted">{% if item.question.category %}{{ item.question.category }}{% else %}Uncategorized{% endif %} · {{ item.created_at|date:"M d, Y" }}</div>
   </div>
   <span class="badge bg-secondary">{{ item.question.answer_count }} answers</span>
 </div>

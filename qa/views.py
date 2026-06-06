@@ -140,11 +140,17 @@ def question_create(request):
                     defaults={'email': 'yakshabot@faqplatform.local', 'is_staff': True}
                 )
 
+                from urllib.parse import urlparse
+                from django.utils.html import escape
                 reply_text = sanitize_html(ai_response['reply'].replace('\n', '<br>'))
                 if ai_response.get('sources'):
                     sources_html = "<br><br><hr><strong class='text-muted small'>Related Sources:</strong><ul class='small mb-0'>"
                     for src in ai_response['sources']:
-                        sources_html += f"<li><a href='{src['url']}' class='text-decoration-none'>{src['title']}</a></li>"
+                        parsed_url = urlparse(src['url'])
+                        if parsed_url.scheme in ('http', 'https', 'mailto', ''):
+                            safe_url = escape(src['url'])
+                            safe_title = escape(src.get('title', ''))
+                            sources_html += f"<li><a href='{safe_url}' class='text-decoration-none'>{safe_title}</a></li>"
                     sources_html += "</ul>"
                     reply_text += sanitize_html(sources_html)
 
@@ -176,8 +182,11 @@ def question_vote(request, pk):
     down = QuestionVote.objects.filter(question=question, vote_type=-1).count()
     Question.objects.filter(pk=question.pk).update(upvote_count=up, downvote_count=down)
 
+    from django.utils.http import url_has_allowed_host_and_scheme
     next_url = request.POST.get('next')
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(next_url)
     return redirect('qa:question_detail', pk=question.pk)
 
@@ -287,8 +296,11 @@ def comment_vote(request, pk):
     down = CommentVote.objects.filter(comment=comment, vote_type=-1).count()
     Comment.objects.filter(pk=comment.pk).update(upvote_count=up, downvote_count=down)
 
+    from django.utils.http import url_has_allowed_host_and_scheme
     next_url = request.POST.get('next')
-    if next_url:
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(next_url)
     return redirect('qa:question_detail', pk=comment.answer.question.pk)
 

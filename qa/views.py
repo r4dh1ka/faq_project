@@ -58,8 +58,11 @@ def question_list(request):
     ).prefetch_related('tags', 'images')
 
     if q:
+        from assistant.services import extract_formal_intent
+        formal = extract_formal_intent(q)
         questions = questions.filter(
-            Q(title__icontains=q) | Q(body__icontains=q) | Q(tags__name__icontains=q)
+            Q(title__icontains=q) | Q(body__icontains=q) | Q(tags__name__icontains=q) |
+            Q(title__icontains=formal) | Q(body__icontains=formal) | Q(tags__name__icontains=formal)
         ).distinct()
     if category_slug:
         questions = questions.filter(category__slug=category_slug)

@@ -33,6 +33,43 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('faqs:category', kwargs={'slug': self.slug})
 
+    @property
+    def faq_count(self):
+        return self.faqs.filter(status=ContentStatus.PUBLISHED).count()
+
+
+class Subcategory(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=140, blank=True)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = 'subcategories'
+        ordering = ['order', 'name']
+        unique_together = ('category', 'slug')
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.name)[:120] or 'subcat'
+            slug = base
+            n = 1
+            while Subcategory.objects.filter(category=self.category, slug=slug).exclude(pk=self.pk).exists():
+                slug = f'{base}-{n}'
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.category.name} › {self.name}'
+
+    def get_absolute_url(self):
+        return reverse('faqs:subcategory', kwargs={
+            'category_slug': self.category.slug,
+            'slug': self.slug,
+        })
+
 
 class FAQ(models.Model):
     title = models.CharField(max_length=255)
@@ -40,6 +77,9 @@ class FAQ(models.Model):
     question = models.TextField()
     answer = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='faqs')
+    subcategory = models.ForeignKey(
+        'Subcategory', on_delete=models.SET_NULL, null=True, blank=True, related_name='faqs'
+    )
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='faqs')
     status = models.CharField(max_length=20, choices=ContentStatus.choices, default=ContentStatus.PENDING)
     tags = TaggableManager(blank=True)
@@ -58,7 +98,13 @@ class FAQ(models.Model):
         verbose_name = 'FAQ'
         verbose_name_plural = 'FAQs'
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.subcategory and self.category and self.subcategory.category != self.category:
+            raise ValidationError({'subcategory': 'Subcategory must belong to the selected category.'})
+
     def save(self, *args, **kwargs):
+        self.clean()
         if not self.slug:
             base = slugify(self.title)[:200] or 'faq'
             slug = base

@@ -1,0 +1,9 @@
+{% if images %}
+<div class="media-gallery" aria-label="Attached images">
+  {% for img in images %}
+  <a href="{{ img.image.url }}" data-lightbox title="{{ img.caption|default:'View full size' }}">
+    <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Attachment' }}" loading="lazy">
+  </a>
+  {% endfor %}
+</div>
+{% endif %}

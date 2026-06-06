@@ -11,6 +11,7 @@ urlpatterns = [
     path('my-submissions/', views.my_submissions, name='my_submissions'),
     path('bookmarks/', views.bookmarks, name='bookmarks'),
     path('category/<slug:slug>/', views.category_view, name='category'),
+    path('category/<slug:category_slug>/<slug:slug>/', views.subcategory_view, name='subcategory'),
     path('faq/<slug:slug>/', views.faq_detail, name='detail'),
     path('faq/<slug:slug>/edit-suggest/', views.faq_edit_suggest, name='edit_suggest'),
     path('faq/<slug:slug>/vote/', views.faq_vote, name='vote'),

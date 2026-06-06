@@ -1,44 +1,56 @@
 {% extends 'base.html' %}
 {% block title %}Home — FAQ Platform{% endblock %}
 {% block content %}
-<div class="hero bg-primary text-white rounded-4 p-5 mb-5">
-  <h1 class="display-5 fw-bold">Crowdsourced FAQ Knowledge Base</h1>
-  <p class="lead">Ask questions, contribute answers, vote on quality, and get instant help from Yaksha — our AI assistant.</p>
-  <div class="d-flex gap-2 flex-wrap">
-    <a href="{% url 'faqs:list' %}" class="btn btn-light">Browse FAQs</a>
-    <a href="{% url 'qa:question_create' %}" class="btn btn-outline-light">Ask a Question</a>
-    {% if not user.is_authenticated %}
-    <a href="{% url 'accounts:register' %}" class="btn btn-outline-light">Join Community</a>
-    {% endif %}
+<div class="hero bg-primary text-white rounded-4 p-5 mb-5 position-relative overflow-hidden">
+  <div class="position-relative" style="z-index: 1;">
+    <h1 class="display-5 fw-bold">Crowdsourced FAQ Knowledge Base</h1>
+    <p class="lead mb-3">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
+    <form action="{% url 'faqs:list' %}" method="get" class="row g-2 mb-3" style="max-width: 640px;">
+      <div class="col">
+        <input type="search" name="q" class="form-control form-control-lg" placeholder="Search FAQs, answers, and questions..." aria-label="Search">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-light btn-lg" type="submit"><i class="bi bi-search"></i> Search</button>
+      </div>
+    </form>
+    <div class="d-flex flex-wrap gap-2">
+      <span class="home-stat-pill"><i class="bi bi-journal-check"></i> {{ faq_total }} FAQs</span>
+      <a href="{% url 'faqs:list' %}" class="btn btn-light btn-sm">Browse FAQs</a>
+      <a href="{% url 'qa:question_create' %}" class="btn btn-outline-light btn-sm">Ask a Question</a>
+      {% if not user.is_authenticated %}
+      <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-sm">Join Community</a>
+      {% endif %}
+    </div>
   </div>
 </div>
 
-<h2 class="h4 mb-3"><i class="bi bi-fire"></i> Trending FAQs</h2>
+<h2 class="h4 mb-3"><i class="bi bi-star-fill text-warning"></i> Featured FAQs</h2>
 <div class="row g-3 mb-5">
-  {% for faq in trending %}
+  {% for faq in featured %}
   <div class="col-md-4">
     <div class="premium-card h-100">
       <div class="card-body">
         <span class="badge bg-secondary">{{ faq.category }}</span>
-        <h5 class="card-title mt-2"><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></h5>
-        <p class="card-text small text-muted">{{ faq.view_count }} views · {{ faq.score }} score</p>
+        <h5 class="card-title mt-2"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
+        <p class="card-text small text-muted mb-0">{{ faq.view_count }} views · {{ faq.score }} score</p>
       </div>
     </div>
   </div>
   {% empty %}
-  <p class="text-muted">No FAQs yet. <a href="{% url 'faqs:create' %}">Be the first to contribute!</a></p>
+  <p class="text-muted">Run <code>python manage.py seed_faqs</code> to populate the knowledge base.</p>
   {% endfor %}
 </div>
 
-<h2 class="h4 mb-3"><i class="bi bi-grid"></i> Categories</h2>
+<h2 class="h4 mb-3"><i class="bi bi-grid"></i> Popular Categories</h2>
 <div class="row g-3 mb-5">
   {% for cat in categories %}
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-4 col-lg-2">
     <a href="{% url 'faqs:category' cat.slug %}" class="text-decoration-none">
       <div class="premium-card text-center h-100">
-        <div class="card-body">
+        <div class="card-body py-3">
           <i class="bi {{ cat.icon|default:'bi-folder' }} fs-2 text-primary"></i>
-          <h6 class="mt-2">{{ cat.name }}</h6>
+          <h6 class="mt-2 mb-0 small">{{ cat.name }}</h6>
+          <small class="text-muted">{{ cat.faq_count }} FAQs</small>
         </div>
       </div>
     </a>
@@ -46,13 +58,60 @@
   {% endfor %}
 </div>
 
-<h2 class="h4 mb-3"><i class="bi bi-clock"></i> Recently Published</h2>
-<div class="d-flex flex-column gap-2">
-  {% for faq in recent %}
-  <div class="premium-card p-3 d-flex justify-content-between align-items-center">
-    <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
-    <small class="text-muted">{{ faq.published_at|date:"M d, Y" }}</small>
+<div class="row g-4 mb-5">
+  <div class="col-lg-6">
+    <h2 class="h4 mb-3"><i class="bi bi-fire"></i> Trending FAQs</h2>
+    <div class="d-flex flex-column gap-2">
+      {% for faq in trending %}
+      <div class="premium-card p-3 d-flex justify-content-between align-items-center">
+        <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
+        <small class="text-muted">{{ faq.view_count }} views</small>
+      </div>
+      {% endfor %}
+    </div>
   </div>
-  {% endfor %}
+  <div class="col-lg-6">
+    <h2 class="h4 mb-3"><i class="bi bi-clock"></i> Recently Published</h2>
+    <div class="d-flex flex-column gap-2">
+      {% for faq in recent_faqs %}
+      <div class="premium-card p-3 d-flex justify-content-between align-items-center">
+        <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
+        <small class="text-muted">{{ faq.published_at|date:"M d" }}</small>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-4">
+    <h2 class="h5 mb-3"><i class="bi bi-chat-dots"></i> Recent Questions</h2>
+    {% for q in recent_questions %}
+    <div class="premium-card p-2 mb-2">
+      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
+      <div class="text-muted" style="font-size: 0.75rem;">{{ q.author.username }} · {{ q.created_at|timesince }} ago</div>
+    </div>
+    {% empty %}<p class="text-muted small">No community questions yet.</p>{% endfor %}
+    <a href="{% url 'qa:question_list' %}" class="btn btn-sm btn-outline-primary mt-2">View all Q&amp;A</a>
+  </div>
+  <div class="col-lg-4">
+    <h2 class="h5 mb-3"><i class="bi bi-eye"></i> Most Viewed Questions</h2>
+    {% for q in most_viewed_questions %}
+    <div class="premium-card p-2 mb-2">
+      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
+      <div class="text-muted" style="font-size: 0.75rem;">{{ q.view_count }} views</div>
+    </div>
+    {% empty %}<p class="text-muted small">—</p>{% endfor %}
+  </div>
+  <div class="col-lg-4">
+    <h2 class="h5 mb-3"><i class="bi bi-question-circle"></i> Unanswered Questions</h2>
+    {% for q in unanswered %}
+    <div class="premium-card p-2 mb-2 border-start border-warning border-3">
+      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
+      <div class="text-muted" style="font-size: 0.75rem;">Needs an answer</div>
+    </div>
+    {% empty %}<p class="text-muted small">All caught up!</p>{% endfor %}
+    <a href="{% url 'qa:question_create' %}" class="btn btn-sm btn-warning mt-2">Answer one</a>
+  </div>
 </div>
 {% endblock %}

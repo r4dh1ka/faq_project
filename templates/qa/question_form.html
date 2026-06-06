@@ -1,12 +1,23 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static crispy_forms_tags %}
 {% block title %}Ask Question{% endblock %}
 {% block content %}
-<h1>Ask a Question</h1>
-<form method="post" id="ask-form">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Post</button></form>
+<h1 class="mb-4"><i class="bi bi-plus-circle"></i> Ask a Question</h1>
+<form method="post" id="ask-form" enctype="multipart/form-data" class="premium-card p-4">
+  {% csrf_token %}
+  {{ form|crispy }}
+  <div class="mb-3">
+    <label class="form-label fw-semibold" for="question-images">Attach images (optional)</label>
+    <input type="file" name="images" id="question-images" class="form-control" accept="image/*" multiple>
+    <div class="form-text">Up to {{ max_images }} images — screenshots, receipts, error messages, etc.</div>
+    <div id="question-image-preview" class="row g-2 mt-2"></div>
+  </div>
+  <button class="btn btn-primary rounded-pill px-4" type="submit">Post Question</button>
+</form>
 <div id="duplicate-warning" class="alert alert-warning d-none mt-3"></div>
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/qa-images.js' %}"></script>
 <script>
 document.getElementById('question-title')?.addEventListener('blur', function() {
   fetch("{% url 'faqs:duplicate_check' %}?title=" + encodeURIComponent(this.value))

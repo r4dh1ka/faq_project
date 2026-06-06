@@ -1,9 +1,52 @@
 {% extends 'base.html' %}
-{% block title %}{{ category.name }}{% endblock %}
+{% block title %}{{ category.name }} — FAQs{% endblock %}
 {% block content %}
-<h1><i class="bi {{ category.icon }}"></i> {{ category.name }}</h1>
-<p>{{ category.description }}</p>
-{% for faq in faqs %}
-<div class="card mb-2"><div class="card-body"><a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a></div></div>
-{% empty %}<p>No FAQs in this category yet.</p>{% endfor %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'faqs:home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'faqs:list' %}">Browse</a></li>
+    <li class="breadcrumb-item active">{{ category.name }}</li>
+  </ol>
+</nav>
+
+<div class="premium-card p-4 mb-4">
+  <h1><i class="bi {{ category.icon|default:'bi-folder' }}"></i> {{ category.name }}</h1>
+  <p class="text-muted mb-0">{{ category.description }}</p>
+  <p class="small text-muted mt-2">{{ faqs|length }} published FAQs</p>
+</div>
+
+{% if category.subcategories.exists %}
+<div class="mb-3 d-flex flex-wrap gap-2">
+  {% for sub in category.subcategories.all %}
+  <a href="{% url 'faqs:subcategory' category.slug sub.slug %}" class="btn btn-sm btn-outline-primary rounded-pill">{{ sub.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="accordion faq-accordion" id="categoryFaqAccordion">
+  {% for sub_name, group_faqs in subcategory_groups.items %}
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sub{{ forloop.counter }}">
+        <i class="bi bi-folder2-open me-2"></i> {{ sub_name }}
+        <span class="badge bg-secondary ms-2">{{ group_faqs|length }}</span>
+      </button>
+    </h2>
+    <div id="sub{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#categoryFaqAccordion">
+      <div class="accordion-body p-0">
+        <div class="list-group list-group-flush">
+          {% for faq in group_faqs %}
+          <a href="{% url 'faqs:detail' faq.slug %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <span>{{ faq.title }}</span>
+            <small class="text-muted">{{ faq.view_count }} views</small>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <p class="text-muted">No FAQs in this category yet. Run <code>python manage.py seed_faqs</code>.</p>
+  {% endfor %}
+</div>
 {% endblock %}

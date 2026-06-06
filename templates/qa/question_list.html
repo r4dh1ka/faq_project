@@ -1,42 +1,56 @@
 {% extends 'base.html' %}
 {% block title %}Community Q&amp;A{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1>Community Questions</h1>
-  <div>
-    <a href="?sort=hot" class="btn btn-sm {% if sort == 'hot' %}btn-secondary{% else %}btn-outline-secondary{% endif %} me-2">Hot</a>
-    <a href="?sort=top" class="btn btn-sm {% if sort == 'top' %}btn-secondary{% else %}btn-outline-secondary{% endif %} me-3">Top</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <h1 class="mb-0">Community Questions</h1>
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    <a href="?sort=hot{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'hot' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Hot</a>
+    <a href="?sort=top{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'top' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Top</a>
+    <a href="?sort=views{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'views' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Most Viewed</a>
+    <a href="?sort=unanswered{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'unanswered' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Unanswered</a>
     <a href="{% url 'qa:question_create' %}" class="btn btn-primary">Ask Question</a>
   </div>
 </div>
+
+<form method="get" class="premium-card p-3 mb-4 row g-2 align-items-end">
+  <div class="col-md-5">
+    <label class="form-label small">Search</label>
+    <input type="search" name="q" class="form-control" value="{{ search_query }}" placeholder="Title, body, tags, answers...">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Category slug</label>
+    <input type="text" name="category" class="form-control" value="{{ category_slug }}" placeholder="hostel">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label small">Tag</label>
+    <input type="text" name="tag" class="form-control" value="{{ tag }}">
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary w-100">Filter</button>
+  </div>
+</form>
+
 {% for q in questions %}
-<div class="premium-card mb-4 border-0">
-  <div class="card-body p-4">
-    <h5 class="card-title mb-1">
-      <a href="{% url 'qa:question_detail' q.pk %}" class="text-decoration-none fw-bold">{{ q.title }}</a>
-    </h5>
-    <div class="mt-3">
-      {% for tag in q.tags.all %}<span class="badge bg-secondary text-decoration-none">{{ tag.name }}</span>{% endfor %}
-    </div>
-    <p class="text-muted small mt-2">
-      Posted by <strong>{{ q.author.username }}</strong> · {{ q.created_at|timesince }} ago
-    </p>
-    <div class="social-bar mt-4 d-flex gap-3">
-      <form action="{% url 'qa:question_vote' q.pk %}" method="post" class="m-0">
-        {% csrf_token %}
-        <input type="hidden" name="vote_type" value="1">
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="social-btn like border-0 bg-transparent text-muted">👍 Like <span class="badge bg-light text-dark ms-1">{{ q.upvote_count }}</span></button>
-      </form>
-      <form action="{% url 'qa:question_vote' q.pk %}" method="post" class="m-0">
-        {% csrf_token %}
-        <input type="hidden" name="vote_type" value="-1">
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <button type="submit" class="social-btn dislike border-0 bg-transparent text-muted">👎 Dislike <span class="badge bg-light text-dark ms-1">{{ q.downvote_count }}</span></button>
-      </form>
-      <a href="{% url 'qa:question_detail' q.pk %}" class="social-btn reply border-0 bg-transparent text-decoration-none text-muted">💬 Answers <span class="badge bg-light text-dark ms-1">{{ q.answers.count }}</span></a>
-    </div>
+<div class="premium-card mb-3 p-4">
+  <h5 class="mb-1">
+    <a href="{% url 'qa:question_detail' q.pk %}" class="text-decoration-none fw-bold">{{ q.title }}</a>
+    {% if q.images.exists %}<i class="bi bi-image text-muted ms-1" title="Has images"></i>{% endif %}
+    {% if not q.is_answered %}<span class="badge bg-warning text-dark ms-1">Unanswered</span>{% endif %}
+  </h5>
+  <div class="mt-2">
+    {% for tag in q.tags.all %}<span class="badge bg-secondary">{{ tag.name }}</span>{% endfor %}
+  </div>
+  <p class="text-muted small mt-2 mb-2">
+    {{ q.author.username }} · {{ q.created_at|timesince }} ago · {{ q.view_count }} views
+    {% if q.category %} · {{ q.category.name }}{% endif %}
+  </p>
+  <div class="d-flex gap-2 flex-wrap">
+    <span class="badge bg-light text-dark">↑ {{ q.upvote_count }}</span>
+    <span class="badge bg-light text-dark">{{ q.answer_count }} answers</span>
+    <a href="{% url 'qa:question_detail' q.pk %}" class="btn btn-sm btn-outline-primary">View</a>
   </div>
 </div>
-{% empty %}<p class="text-muted">No questions yet. Be the first to ask!</p>{% endfor %}
+{% empty %}
+<p class="text-muted">No questions match. <a href="{% url 'qa:question_create' %}">Ask the first one</a>.</p>
+{% endfor %}
 {% endblock %}

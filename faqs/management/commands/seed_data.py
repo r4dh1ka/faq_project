@@ -67,6 +67,7 @@ class Command(BaseCommand):
         for cat, title, answer in samples:
             FAQ.objects.get_or_create(
                 title=title,
+                category=cat,
                 defaults={
                     'question': title,
                     'answer': f'<p>{answer}</p>',
@@ -124,6 +125,7 @@ class Command(BaseCommand):
         for title, answer in internship_faqs:
             FAQ.objects.get_or_create(
                 title=title,
+                category=internship,
                 defaults={
                     'question': title,
                     'answer': f'<p>{answer}</p>',
@@ -181,6 +183,7 @@ class Command(BaseCommand):
         for title, answer in yaksha_ai_faqs:
             FAQ.objects.get_or_create(
                 title=title,
+                category=yaksha_ai,
                 defaults={
                     'question': title,
                     'answer': f'<p>{answer}</p>',
@@ -238,6 +241,7 @@ class Command(BaseCommand):
         for title, answer in spurti_points_faqs:
             FAQ.objects.get_or_create(
                 title=title,
+                category=spurti_points,
                 defaults={
                     'question': title,
                     'answer': f'<p>{answer}</p>',
@@ -275,6 +279,7 @@ class Command(BaseCommand):
         for title, answer in community_faqs:
             FAQ.objects.get_or_create(
                 title=title,
+                category=community,
                 defaults={
                     'question': title,
                     'answer': f'<p>{answer}</p>',

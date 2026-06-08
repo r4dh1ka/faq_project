@@ -54,12 +54,15 @@ def question_list(request):
     tag = request.GET.get('tag', '').strip()
 
     questions = Question.objects.filter(status=ContentStatus.PUBLISHED).select_related(
-        'author', 'category'
+        'author__profile__badge', 'category'
     ).prefetch_related('tags', 'images')
 
     if q:
+        from assistant.services import extract_formal_intent
+        formal = extract_formal_intent(q)
         questions = questions.filter(
-            Q(title__icontains=q) | Q(body__icontains=q) | Q(tags__name__icontains=q)
+            Q(title__icontains=q) | Q(body__icontains=q) | Q(tags__name__icontains=q) |
+            Q(title__icontains=formal) | Q(body__icontains=formal) | Q(tags__name__icontains=formal)
         ).distinct()
     if category_slug:
         questions = questions.filter(category__slug=category_slug)
@@ -86,12 +89,12 @@ def question_list(request):
 
 def question_detail(request, pk):
     question = get_object_or_404(
-        Question.objects.select_related('author', 'category').prefetch_related('tags', 'images'),
+        Question.objects.select_related('author__profile__badge', 'category').prefetch_related('tags', 'images'),
         pk=pk,
     )
     answers = question.answers.filter(status=ContentStatus.PUBLISHED).select_related(
-        'author'
-    ).prefetch_related('comments__author', 'comments__replies', 'images')
+        'author__profile__badge'
+    ).prefetch_related('comments__author__profile__badge', 'comments__replies', 'images')
     similar_faqs = find_similar_faqs(question.title, limit=5)
     related_questions = find_similar_questions(question.title, exclude_pk=question.pk, limit=5)
     Question.objects.filter(pk=question.pk).update(view_count=F('view_count') + 1)

@@ -13,8 +13,15 @@
   {% for profile in profiles %}
   <tr>
     <td>{{ forloop.counter }}</td>
-    <td><a href="{% url 'accounts:user_profile' profile.user.username %}">{{ profile.user.username }}</a></td>
-    <td>{{ profile.display_points }}</td>
+    <td>
+      <a href="{% url 'accounts:user_profile' profile.user.username %}" class="fw-bold text-decoration-none">{{ profile.user.username }}</a>
+      {% if profile.badge %}
+        <span class="badge rounded-pill bg-light border {{ profile.badge.color }} ms-2" title="{{ profile.badge.name }}">
+          <i class="bi {{ profile.badge.icon }}"></i> {{ profile.badge.name }}
+        </span>
+      {% endif %}
+    </td>
+    <td><span class="fw-bold text-success">{{ profile.display_points }}</span></td>
   </tr>
   {% endfor %}
   </tbody>

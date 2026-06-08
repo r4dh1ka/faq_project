@@ -17,6 +17,8 @@ def search_faqs(query='', category_slug='', tag='', sort='', user=None, subcateg
     if tag:
         qs = qs.filter(tags__name__iexact=tag)
     if query:
+        from assistant.services import extract_formal_intent
+        formal = extract_formal_intent(query)
         qs = qs.filter(
             Q(title__icontains=query)
             | Q(question__icontains=query)
@@ -24,6 +26,10 @@ def search_faqs(query='', category_slug='', tag='', sort='', user=None, subcateg
             | Q(tags__name__icontains=query)
             | Q(category__name__icontains=query)
             | Q(subcategory__name__icontains=query)
+            | Q(title__icontains=formal)
+            | Q(question__icontains=formal)
+            | Q(answer__icontains=formal)
+            | Q(tags__name__icontains=formal)
         ).distinct()
 
     if sort == 'popular':
@@ -53,11 +59,17 @@ def search_questions(query='', category_slug='', tag='', sort=''):
     if tag:
         qs = qs.filter(tags__name__iexact=tag)
     if query:
+        from assistant.services import extract_formal_intent
+        formal = extract_formal_intent(query)
         qs = qs.filter(
             Q(title__icontains=query)
             | Q(body__icontains=query)
             | Q(tags__name__icontains=query)
             | Q(answers__body__icontains=query)
+            | Q(title__icontains=formal)
+            | Q(body__icontains=formal)
+            | Q(tags__name__icontains=formal)
+            | Q(answers__body__icontains=formal)
         ).distinct()
     if sort == 'popular':
         qs = qs.order_by('-upvote_count', '-view_count')

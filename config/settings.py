@@ -17,6 +17,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'taggit',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -38,6 +43,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -137,15 +143,21 @@ POINTS_ACCEPTED_ANSWER = config('POINTS_ACCEPTED_ANSWER', default=20, cast=int)
 POINTS_FAQ_CONTRIBUTION = config('POINTS_FAQ_CONTRIBUTION', default=15, cast=int)
 POINTS_EDIT_ACCEPTED = config('POINTS_EDIT_ACCEPTED', default=10, cast=int)
 
-# OpenAI assistant
-OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
-OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')
+# Gemini AI assistant
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-2.5-flash')
 
 # Rich text sanitization
 BLEACH_ALLOWED_TAGS = [
-    'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h2', 'h3', 'blockquote', 'code', 'pre',
+    'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 'a', 'h2', 'h3', 'blockquote', 'code', 'pre', 'span'
 ]
-BLEACH_ALLOWED_ATTRIBUTES = {'a': ['href', 'title', 'rel']}
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title', 'rel'],
+    'pre': ['class'],
+    'code': ['class'],
+    'p': ['style', 'class'],
+    'span': ['style', 'class']
+}
 
 # Caching Configuration
 CACHES = {
@@ -165,3 +177,27 @@ if REDIS_URL:
     }
     SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
     SESSION_CACHE_ALIAS = 'default'
+
+# Allauth & Google OAuth Settings
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID', default=''),
+            'secret': config('GOOGLE_CLIENT_SECRET', default=''),
+            'key': ''
+        }
+    }
+}
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+SOCIALACCOUNT_LOGIN_ON_GET = True

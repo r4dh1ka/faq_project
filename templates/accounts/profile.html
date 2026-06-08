@@ -4,7 +4,14 @@
 <div class="row">
   <div class="col-md-4 text-center">
     {% if profile.avatar %}<img src="{{ profile.avatar.url }}" class="rounded-circle img-thumbnail mb-3" width="120">{% else %}<i class="bi bi-person-circle display-1"></i>{% endif %}
-    <h2>{{ profile.user.username }}</h2>
+    <h2>
+      {{ profile.user.username }}
+      {% if profile.badge %}
+        <span class="badge rounded-pill bg-light border {{ profile.badge.color }} fs-6 ms-2" title="{{ profile.badge.name }}">
+          <i class="bi {{ profile.badge.icon }}"></i> {{ profile.badge.name }}
+        </span>
+      {% endif %}
+    </h2>
     <span class="badge bg-primary">{{ profile.get_role_display }}</span>
     <p class="display-6 text-primary mt-2">{{ profile.reputation }} pts</p>
     {% if is_own_profile %}<a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary btn-sm">Edit Profile</a>{% endif %}

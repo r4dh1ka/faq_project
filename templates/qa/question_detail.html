@@ -5,7 +5,14 @@
 <div class="mb-4">
   <div class="premium-card p-4">
     <div class="question-meta-bar">
-      <span><i class="bi bi-person-circle"></i> {{ question.author.username }}</span>
+      <span>
+        <i class="bi bi-person-circle"></i> <a href="{% url 'accounts:user_profile' question.author.username %}" class="text-decoration-none text-reset">{{ question.author.username }}</a>
+        {% if question.author.profile.badge %}
+          <span class="badge rounded-pill bg-light border {{ question.author.profile.badge.color }} ms-1" style="font-size: 0.7rem;" title="{{ question.author.profile.badge.name }}">
+            <i class="bi {{ question.author.profile.badge.icon }}"></i>
+          </span>
+        {% endif %}
+      </span>
       <span><i class="bi bi-clock"></i> {{ question.created_at|date:"M d, Y" }} ({{ question.created_at|timesince }} ago)</span>
       <span><i class="bi bi-eye"></i> {{ question.view_count }} views</span>
       <span><i class="bi bi-chat-dots"></i> {{ answers|length }} answers</span>
@@ -77,7 +84,12 @@
         <span class="author text-primary">{{ answer.author.username }} <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">AI</span></span>
       {% else %}
         <i class="bi bi-person-circle reddit-avatar-placeholder"></i>
-        <span class="author">{{ answer.author.username }}</span>
+        <a href="{% url 'accounts:user_profile' answer.author.username %}" class="author text-decoration-none">{{ answer.author.username }}</a>
+        {% if answer.author.profile.badge %}
+          <span class="badge rounded-pill bg-light border {{ answer.author.profile.badge.color }} me-2" style="font-size: 0.7rem;" title="{{ answer.author.profile.badge.name }}">
+            <i class="bi {{ answer.author.profile.badge.icon }}"></i>
+          </span>
+        {% endif %}
       {% endif %}
       <span class="time">• {{ answer.created_at|timesince }} ago</span>
     </div>

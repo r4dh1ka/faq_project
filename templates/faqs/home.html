@@ -3,11 +3,11 @@
 {% block content %}
 <div class="animated-mesh-hero rounded-5 p-5 mb-5 position-relative overflow-hidden shadow-lg mt-3">
   <div class="position-relative text-center" style="z-index: 1;">
-    <h1 class="display-4 fw-bold mb-3 text-white">The Future of Campus Knowledge</h1>
-    <p class="lead mb-4 text-white-50 mx-auto" style="max-width: 600px;">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
+    <h1 class="display-4 fw-bold mb-3">The Future of Campus Knowledge</h1>
+    <p class="lead mb-4 text-muted mx-auto" style="max-width: 600px;">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
     <form action="{% url 'faqs:list' %}" method="get" class="d-flex justify-content-center mx-auto mb-4" style="max-width: 500px;">
       <div class="input-group input-group-lg shadow-sm">
-        <input type="search" name="q" class="form-control glass-search border-0 text-white" placeholder="Ask anything..." style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+        <input type="search" name="q" class="form-control glass-search border-0" placeholder="Ask anything..." style="background: rgba(128,128,128,0.1); backdrop-filter: blur(10px);">
         <button class="btn btn-primary px-4" type="submit"><i class="bi bi-magic"></i></button>
       </div>
     </form>

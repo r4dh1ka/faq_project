@@ -78,10 +78,18 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 }
 
 /* Hero Section Gradient */
+/* Hero Section Gradient - Light Mode */
 .animated-mesh-hero {
-  background: linear-gradient(-45deg, #0f172a, #3b0764, #1e1b4b, #172554);
+  background: linear-gradient(-45deg, #f0f9ff, #e0e7ff, #ede9fe, #fcf5ff);
   background-size: 400% 400%;
   animation: gradientMesh 15s ease infinite;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+/* Hero Section Gradient - Dark Mode */
+[data-bs-theme="dark"] .animated-mesh-hero {
+  background: linear-gradient(-45deg, #0f172a, #3b0764, #1e1b4b, #172554);
+  border: none;
 }
 
 @keyframes gradientMesh {

@@ -1,9 +1,20 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% load socialaccount %}
 {% block title %}Register{% endblock %}
 {% block content %}
 <div class="row justify-content-center"><div class="col-md-6">
 <h1>Create Account</h1>
+<a href="{% provider_login_url 'google' %}" class="btn btn-outline-dark w-100 rounded-pill mb-4 d-flex align-items-center justify-content-center border-2 shadow-sm">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" style="width: 20px; height: 20px;" class="me-2">
+  Continue with Google
+</a>
+
+<div class="d-flex align-items-center mb-4">
+  <hr class="flex-grow-1 bg-secondary opacity-25">
+  <span class="mx-3 text-muted small fw-semibold text-uppercase">or register with email</span>
+  <hr class="flex-grow-1 bg-secondary opacity-25">
+</div>
 <form method="post">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Register</button></form>
 </div></div>
 {% endblock %}

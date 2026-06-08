@@ -14,6 +14,7 @@ class UserProfile(models.Model):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     reputation = models.PositiveIntegerField(default=0)
+    is_email_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -30,3 +31,15 @@ class UserProfile(models.Model):
     @property
     def is_admin(self):
         return self.role == Role.ADMIN
+
+    @property
+    def badge(self):
+        if self.reputation >= 500:
+            return {'name': 'Diamond Guru', 'icon': 'bi-gem', 'color': 'text-info'}
+        elif self.reputation >= 300:
+            return {'name': 'Platinum Guide', 'icon': 'bi-star-fill', 'color': 'text-primary'}
+        elif self.reputation >= 150:
+            return {'name': 'Gold Contributor', 'icon': 'bi-award-fill', 'color': 'text-warning'}
+        elif self.reputation >= 50:
+            return {'name': 'Silver Helper', 'icon': 'bi-shield-fill-check', 'color': 'text-secondary'}
+        return None

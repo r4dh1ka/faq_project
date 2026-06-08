@@ -13,10 +13,10 @@
     return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
   }
 
-  function appendMsg(text, role, sources) {
+  function appendMsg(text, role, sources, isHtml = false) {
     const div = document.createElement('div');
     div.className = `chat-msg ${role}`;
-    div.textContent = text;
+    if (isHtml) { div.innerHTML = text; } else { div.textContent = text; }
     if (sources && sources.length) {
       const src = document.createElement('div');
       src.className = 'chat-sources';
@@ -41,7 +41,7 @@
     if (!text) return;
     appendMsg(text, 'user');
     input.value = '';
-    appendMsg('Thinking...', 'bot');
+    appendMsg('<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>', 'bot', [], true);
     const thinking = messages.lastChild;
     try {
       const res = await fetch('/assistant/api/chat/', {

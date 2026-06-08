@@ -1,25 +1,20 @@
 {% extends 'base.html' %}
 {% block title %}Home — FAQ Platform{% endblock %}
 {% block content %}
-<div class="hero bg-primary text-white rounded-4 p-5 mb-5 position-relative overflow-hidden">
-  <div class="position-relative" style="z-index: 1;">
-    <h1 class="display-5 fw-bold">Crowdsourced FAQ Knowledge Base</h1>
-    <p class="lead mb-3">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
-    <form action="{% url 'faqs:list' %}" method="get" class="row g-2 mb-3" style="max-width: 640px;">
-      <div class="col">
-        <input type="search" name="q" class="form-control form-control-lg" placeholder="Search FAQs, answers, and questions..." aria-label="Search">
-      </div>
-      <div class="col-auto">
-        <button class="btn btn-light btn-lg" type="submit"><i class="bi bi-search"></i> Search</button>
+<div class="animated-mesh-hero rounded-5 p-5 mb-5 position-relative overflow-hidden shadow-lg mt-3">
+  <div class="position-relative text-center" style="z-index: 1;">
+    <h1 class="display-4 fw-bold mb-3 text-white">The Future of Campus Knowledge</h1>
+    <p class="lead mb-4 text-white-50 mx-auto" style="max-width: 600px;">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
+    <form action="{% url 'faqs:list' %}" method="get" class="d-flex justify-content-center mx-auto mb-4" style="max-width: 500px;">
+      <div class="input-group input-group-lg shadow-sm">
+        <input type="search" name="q" class="form-control glass-search border-0 text-white" placeholder="Ask anything..." style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+        <button class="btn btn-primary px-4" type="submit"><i class="bi bi-magic"></i></button>
       </div>
     </form>
-    <div class="d-flex flex-wrap gap-2">
+    <div class="d-flex justify-content-center flex-wrap gap-3">
       <span class="home-stat-pill"><i class="bi bi-journal-check"></i> {{ faq_total }} FAQs</span>
-      <a href="{% url 'faqs:list' %}" class="btn btn-light btn-sm">Browse FAQs</a>
-      <a href="{% url 'qa:question_create' %}" class="btn btn-outline-light btn-sm">Ask a Question</a>
-      {% if not user.is_authenticated %}
-      <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-sm">Join Community</a>
-      {% endif %}
+      <a href="{% url 'faqs:list' %}" class="btn btn-light rounded-pill px-4 fw-semibold">Explore Knowledge</a>
+      <a href="{% url 'qa:question_create' %}" class="btn btn-outline-light rounded-pill px-4 fw-semibold">Ask a Question</a>
     </div>
   </div>
 </div>
@@ -41,15 +36,15 @@
   {% endfor %}
 </div>
 
-<h2 class="h4 mb-3"><i class="bi bi-grid"></i> Popular Categories</h2>
+<h2 class="h4 mb-4"><i class="bi bi-grid"></i> Explore by Category</h2>
 <div class="row g-3 mb-5">
   {% for cat in categories %}
-  <div class="col-6 col-md-4 col-lg-2">
+  <div class="col-6 {% cycle 'col-md-4 col-lg-3' 'col-md-8 col-lg-5' 'col-md-4 col-lg-4' %}">
     <a href="{% url 'faqs:category' cat.slug %}" class="text-decoration-none">
-      <div class="premium-card text-center h-100">
+      <div class="premium-card text-center h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 140px;">
         <div class="card-body py-3">
-          <i class="bi {{ cat.icon|default:'bi-folder' }} fs-2 text-primary"></i>
-          <h6 class="mt-2 mb-0 small">{{ cat.name }}</h6>
+          <i class="bi {{ cat.icon|default:'bi-folder' }} fs-2 text-primary mb-2"></i>
+          <h5 class="mb-0 text-body">{{ cat.name }}</h5>
           <small class="text-muted">{{ cat.faq_count }} FAQs</small>
         </div>
       </div>

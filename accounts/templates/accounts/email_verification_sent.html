@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Verify Email — FAQ Platform{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 text-center">
+    <div class="premium-card p-5 mt-4">
+      <i class="bi bi-envelope-paper fs-1 text-primary mb-3"></i>
+      <h2 class="mb-3">Verify your email</h2>
+      <p class="text-muted">We've sent an email to <strong>{{ email }}</strong> with a link to verify your account.</p>
+      <p class="text-muted">If you don't see it, check your spam folder.</p>
+      <a href="{% url 'faqs:home' %}" class="btn btn-outline-primary mt-3">Return Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

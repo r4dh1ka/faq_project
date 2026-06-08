@@ -52,7 +52,8 @@ def extract_formal_intent(query: str) -> str:
         from openai import OpenAI
         client = OpenAI(
             api_key=settings.GEMINI_API_KEY,
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            timeout=10.0
         )
         model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash')
 
@@ -83,7 +84,8 @@ def generate_ai_response(user_message: str) -> dict:
             from openai import OpenAI
             client = OpenAI(
                 api_key=settings.GEMINI_API_KEY,
-                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                timeout=10.0
             )
             model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash')
         

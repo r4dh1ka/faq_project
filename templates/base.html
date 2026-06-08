@@ -70,7 +70,12 @@
               <li><a class="dropdown-item" href="{% url 'faqs:my_submissions' %}">My Submissions</a></li>
               <li><a class="dropdown-item" href="{% url 'faqs:create' %}">Submit FAQ</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+              <li>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item">Logout</button>
+                </form>
+              </li>
             </ul>
           </li>
           {% else %}
@@ -119,7 +124,8 @@
     document.addEventListener("DOMContentLoaded", function() {
       const textareas = document.querySelectorAll('textarea.rich-text');
       textareas.forEach(textarea => {
-        textarea.style.display = 'none';
+        // Visually hide but keep focusable for HTML5 validation
+        textarea.setAttribute('style', 'opacity: 0; position: absolute; pointer-events: none; height: 0;');
         const quillContainer = document.createElement('div');
         textarea.parentNode.insertBefore(quillContainer, textarea.nextSibling);
         

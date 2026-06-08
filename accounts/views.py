@@ -25,10 +25,6 @@ class CustomLoginView(LoginView):
 
 class CustomLogoutView(LogoutView):
     next_page = 'faqs:home'
-    http_method_names = ['get', 'post', 'options']
-
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
 
 
 class CustomPasswordResetView(PasswordResetView):
@@ -60,7 +56,12 @@ class RegisterView(CreateView):
         })
         msg = EmailMultiAlternatives(subject, "Please verify your email.", settings.DEFAULT_FROM_EMAIL, [user.email])
         msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        try:
+            msg.send()
+        except Exception:
+            user.delete()
+            messages.error(self.request, "There was an error sending the verification email. Please try again.")
+            return redirect('accounts:register')
         
         return render(self.request, 'accounts/email_verification_sent.html', {'email': user.email})
 
@@ -76,7 +77,7 @@ class VerifyEmailView(View):
             profile = user.profile
             profile.is_email_verified = True
             profile.save()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(request, 'Your email has been verified! Welcome to the community.')
             return redirect('faqs:home')
         else:

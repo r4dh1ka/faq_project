@@ -82,7 +82,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .animated-mesh-hero {
   background: linear-gradient(-45deg, #f0f9ff, #e0e7ff, #ede9fe, #fcf5ff);
   background-size: 400% 400%;
-  animation: gradientMesh 15s ease infinite;
+  animation: gradient-mesh 15s ease infinite;
   border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
@@ -92,7 +92,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
   border: none;
 }
 
-@keyframes gradientMesh {
+@keyframes gradient-mesh {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }

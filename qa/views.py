@@ -54,7 +54,7 @@ def question_list(request):
     tag = request.GET.get('tag', '').strip()
 
     questions = Question.objects.filter(status=ContentStatus.PUBLISHED).select_related(
-        'author__profile__badge', 'category'
+        'author__profile', 'category'
     ).prefetch_related('tags', 'images')
 
     if q:
@@ -89,12 +89,12 @@ def question_list(request):
 
 def question_detail(request, pk):
     question = get_object_or_404(
-        Question.objects.select_related('author__profile__badge', 'category').prefetch_related('tags', 'images'),
+        Question.objects.select_related('author__profile', 'category').prefetch_related('tags', 'images'),
         pk=pk,
     )
     answers = question.answers.filter(status=ContentStatus.PUBLISHED).select_related(
-        'author__profile__badge'
-    ).prefetch_related('comments__author__profile__badge', 'comments__replies', 'images')
+        'author__profile'
+    ).prefetch_related('comments__author__profile', 'comments__replies', 'images')
     similar_faqs = find_similar_faqs(question.title, limit=5)
     related_questions = find_similar_questions(question.title, exclude_pk=question.pk, limit=5)
     Question.objects.filter(pk=question.pk).update(view_count=F('view_count') + 1)

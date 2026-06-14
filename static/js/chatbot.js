@@ -28,12 +28,13 @@
   }
 
   toggle.addEventListener('click', () => {
-    panel.classList.toggle('d-none');
-    if (!panel.classList.contains('d-none') && !messages.childElementCount) {
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden') && !messages.childElementCount) {
       appendMsg('Hi! I am Yaksha. Ask me anything about our FAQ knowledge base.', 'bot');
     }
   });
-  closeBtn?.addEventListener('click', () => panel.classList.add('d-none'));
+
+  closeBtn?.addEventListener('click', () => panel.classList.add('hidden'));
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -55,15 +56,18 @@
       const data = await res.json();
       thinking.remove();
       appendMsg(data.reply || 'No response.', 'bot', data.sources);
-      if (data.suggested?.length) {
-        suggestionsEl.innerHTML =
-          'Try: ' +
-          data.suggested.map((s) => `<button type="button" class="btn btn-link btn-sm p-0 suggest-btn">${s}</button>`).join(' · ');
-        suggestionsEl.querySelectorAll('.suggest-btn').forEach((btn) => {
+      if (data.suggested?.length && suggestionsEl) {
+        suggestionsEl.innerHTML = '';
+        data.suggested.forEach((s) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'suggest-btn';
+          btn.textContent = s;
           btn.addEventListener('click', () => {
-            input.value = btn.textContent;
+            input.value = s;
             form.requestSubmit();
           });
+          suggestionsEl.appendChild(btn);
         });
       }
     } catch (err) {

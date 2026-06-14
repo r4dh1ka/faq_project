@@ -1,26 +1,45 @@
 {% extends 'base.html' %}
-{% block title %}Moderation Queue{% endblock %}
+{% block title %}Review Queue{% endblock %}
 {% block content %}
-<h1>Pending Content</h1>
-<h3>New FAQs</h3>
-{% for faq in pending %}
-<div class="card mb-2">
-  <div class="card-body">
-    <h5>{{ faq.title }}</h5>
-    <p>{{ faq.question|truncatewords:30 }}</p>
-    <form method="post" action="{% url 'faqs:approve' faq.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-success btn-sm">Approve</button></form>
-    <form method="post" action="{% url 'faqs:reject' faq.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-danger btn-sm">Reject</button></form>
-  </div>
+<div class="mb-8">
+  <p class="eyebrow mb-2">Moderation</p>
+  <h1 class="page-title">Review Queue</h1>
+  <p class="mt-2 text-slate-500">Approve high-quality contributions and apply community edits.</p>
 </div>
-{% empty %}<p>No pending FAQs.</p>{% endfor %}
-<h3 class="mt-4">Edit Suggestions</h3>
-{% for edit in edits %}
-<div class="card mb-2">
-  <div class="card-body">
-    <h5>Edit for: {{ edit.faq.title }}</h5>
-    <p>By {{ edit.suggested_by.username }}</p>
-    <form method="post" action="{% url 'faqs:approve_edit' edit.pk %}">{% csrf_token %}<button class="btn btn-primary btn-sm">Apply Edit</button></form>
-  </div>
+
+<div class="grid gap-8 xl:grid-cols-2">
+  <section>
+    <h2 class="section-title mb-4">New FAQs</h2>
+    <div class="space-y-4">
+      {% for faq in pending %}
+      <div class="card-modern p-5">
+        <span class="badge-soft">{{ faq.category|default:"General" }}</span>
+        <h3 class="mt-3 text-lg font800 text-slate-950">{{ faq.title }}</h3>
+        <p class="mt-2 line-clamp-2 text-sm text-slate-500">{{ faq.question|striptags }}</p>
+        <div class="mt-5 flex gap-2">
+          <form method="post" action="{% url 'faqs:approve' faq.pk %}">{% csrf_token %}<button class="btn-success">Approve</button></form>
+          <form method="post" action="{% url 'faqs:reject' faq.pk %}">{% csrf_token %}<button class="btn-danger">Reject</button></form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="card-modern p-6 text-sm text-slate-500">No pending FAQs.</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title mb-4">Edit Suggestions</h2>
+    <div class="space-y-4">
+      {% for edit in edits %}
+      <div class="card-modern p-5">
+        <p class="text-sm text-slate-500">Suggested by {{ edit.suggested_by.username }}</p>
+        <h3 class="mt-2 text-lg font800 text-slate-950">{{ edit.faq.title }}</h3>
+        <form method="post" action="{% url 'faqs:approve_edit' edit.pk %}" class="mt-5">{% csrf_token %}<button class="btn-primary">Apply Edit</button></form>
+      </div>
+      {% empty %}
+      <div class="card-modern p-6 text-sm text-slate-500">No pending edits.</div>
+      {% endfor %}
+    </div>
+  </section>
 </div>
-{% empty %}<p>No pending edits.</p>{% endfor %}
 {% endblock %}

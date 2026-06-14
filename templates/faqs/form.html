@@ -2,10 +2,19 @@
 {% load crispy_forms_tags %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>{{ title }}</h1>
-<form method="post" enctype="multipart/form-data">{% csrf_token %}
-  {{ form|crispy }}
-  <button type="submit" class="btn btn-primary">Submit for Review</button>
-</form>
-<p class="text-muted mt-2">Submissions go through moderator review before publishing.</p>
+<div class="mx-auto max-w-3xl">
+  <div class="mb-6">
+    <p class="eyebrow mb-2">Contribution</p>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="mt-2 text-slate-500">Submit a clear answer for moderator review.</p>
+  </div>
+  <form method="post" enctype="multipart/form-data" class="card-modern space-y-5 p-6">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5">
+      <a href="{% url 'faqs:list' %}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">Submit for Review</button>
+    </div>
+  </form>
+</div>
 {% endblock %}

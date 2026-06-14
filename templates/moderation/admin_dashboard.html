@@ -1,13 +1,44 @@
 {% extends 'base.html' %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-<h1>Administrator Dashboard</h1>
-<div class="row g-3">
-  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.users }}</h3><p>Users</p></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.faqs_published }}</h3><p>Published FAQs</p></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.faqs_pending }}</h3><p>Pending FAQs</p></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.questions }}</h3><p>Questions</p></div></div></div>
-  <div class="col-md-4"><div class="card"><div class="card-body"><h3>{{ stats.open_reports }}</h3><p>Open Reports</p></div></div></div>
+<div class="mb-8">
+  <p class="eyebrow mb-2">Administration</p>
+  <h1 class="page-title">Admin Dashboard</h1>
+  <p class="mt-2 text-slate-500">Platform overview and quick management links.</p>
 </div>
-<p class="mt-4"><a href="/admin/" class="btn btn-primary">Django Admin</a></p>
+
+<div class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+  <div class="stat-card">
+    <div class="mb-2 grid h-9 w-9 place-items-center rounded-lg bg-indigo-50 text-indigo-600"><i class="bi bi-people"></i></div>
+    <div class="stat-value">{{ stats.users }}</div>
+    <div class="stat-label">Users</div>
+  </div>
+  <div class="stat-card">
+    <div class="mb-2 grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i class="bi bi-check-circle"></i></div>
+    <div class="stat-value">{{ stats.faqs_published }}</div>
+    <div class="stat-label">Published FAQs</div>
+  </div>
+  <div class="stat-card">
+    <div class="mb-2 grid h-9 w-9 place-items-center rounded-lg bg-amber-50 text-amber-600"><i class="bi bi-hourglass-split"></i></div>
+    <div class="stat-value">{{ stats.faqs_pending }}</div>
+    <div class="stat-label">Pending FAQs</div>
+  </div>
+  <div class="stat-card">
+    <div class="mb-2 grid h-9 w-9 place-items-center rounded-lg bg-sky-50 text-sky-600"><i class="bi bi-chat-dots"></i></div>
+    <div class="stat-value">{{ stats.questions }}</div>
+    <div class="stat-label">Questions</div>
+  </div>
+  <div class="stat-card">
+    <div class="mb-2 grid h-9 w-9 place-items-center rounded-lg bg-red-50 text-red-600"><i class="bi bi-flag"></i></div>
+    <div class="stat-value">{{ stats.open_reports }}</div>
+    <div class="stat-label">Open Reports</div>
+  </div>
+</div>
+
+<div class="flex flex-wrap gap-3">
+  <a href="/admin/" class="btn-primary"><i class="bi bi-gear"></i> Django Admin</a>
+  <a href="{% url 'faqs:pending' %}" class="btn-ghost"><i class="bi bi-shield-check"></i> Review Queue</a>
+  <a href="{% url 'moderation:report_list' %}" class="btn-ghost"><i class="bi bi-flag"></i> Reports</a>
+  <a href="{% url 'analytics:dashboard' %}" class="btn-ghost"><i class="bi bi-bar-chart"></i> Analytics</a>
+</div>
 {% endblock %}

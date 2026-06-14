@@ -1,56 +1,42 @@
 {% extends 'base.html' %}
-{% block title %}Community Q&amp;A{% endblock %}
+{% block title %}Community Questions{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-  <h1 class="mb-0">Community Questions</h1>
-  <div class="d-flex flex-wrap gap-2 align-items-center">
-    <a href="?sort=hot{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'hot' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Hot</a>
-    <a href="?sort=top{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'top' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Top</a>
-    <a href="?sort=views{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'views' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Most Viewed</a>
-    <a href="?sort=unanswered{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if category_slug %}&category={{ category_slug|urlencode }}{% endif %}{% if tag %}&tag={{ tag|urlencode }}{% endif %}" class="btn btn-sm {% if sort == 'unanswered' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Unanswered</a>
-    <a href="{% url 'qa:question_create' %}" class="btn btn-primary">Ask Question</a>
+<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+  <div>
+    <p class="eyebrow mb-2">Community</p>
+    <h1 class="page-title">Questions</h1>
+    <p class="mt-2 text-slate-500">Ask, answer, and build the shared knowledge base.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="?sort=hot" class="btn-ghost {% if sort == 'hot' %}bg-indigo-50 text-indigo-700{% endif %}">Hot</a>
+    <a href="?sort=top" class="btn-ghost {% if sort == 'top' %}bg-indigo-50 text-indigo-700{% endif %}">Top</a>
+    <a href="{% url 'qa:question_create' %}" class="btn-primary"><i class="bi bi-plus-lg"></i> Ask Question</a>
   </div>
 </div>
 
-<form method="get" class="premium-card p-3 mb-4 row g-2 align-items-end">
-  <div class="col-md-5">
-    <label class="form-label small">Search</label>
-    <input type="search" name="q" class="form-control" value="{{ search_query }}" placeholder="Title, body, tags, answers...">
-  </div>
-  <div class="col-md-3">
-    <label class="form-label small">Category slug</label>
-    <input type="text" name="category" class="form-control" value="{{ category_slug }}" placeholder="hostel">
-  </div>
-  <div class="col-md-2">
-    <label class="form-label small">Tag</label>
-    <input type="text" name="tag" class="form-control" value="{{ tag }}">
-  </div>
-  <div class="col-md-2">
-    <button type="submit" class="btn btn-primary w-100">Filter</button>
-  </div>
-</form>
-
-{% for q in questions %}
-<div class="premium-card mb-3 p-4">
-  <h5 class="mb-1">
-    <a href="{% url 'qa:question_detail' q.pk %}" class="text-decoration-none fw-bold">{{ q.title }}</a>
-    {% if q.images.exists %}<i class="bi bi-image text-muted ms-1" title="Has images"></i>{% endif %}
-    {% if not q.is_answered %}<span class="badge bg-warning text-dark ms-1">Unanswered</span>{% endif %}
-  </h5>
-  <div class="mt-2">
-    {% for tag in q.tags.all %}<span class="badge bg-secondary">{{ tag.name }}</span>{% endfor %}
-  </div>
-  <p class="text-muted small mt-2 mb-2">
-    {{ q.author.username }} · {{ q.created_at|timesince }} ago · {{ q.view_count }} views
-    {% if q.category %} · {{ q.category.name }}{% endif %}
-  </p>
-  <div class="d-flex gap-2 flex-wrap">
-    <span class="badge bg-light text-dark">↑ {{ q.upvote_count }}</span>
-    <span class="badge bg-light text-dark">{{ q.answer_count }} answers</span>
-    <a href="{% url 'qa:question_detail' q.pk %}" class="btn btn-sm btn-outline-primary">View</a>
-  </div>
+<div class="grid gap-4">
+  {% for q in questions %}
+  <a href="{% url 'qa:question_detail' q.pk %}" class="card-modern block p-5">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <div class="mb-3 flex flex-wrap gap-2">
+          {% if q.category %}<span class="badge-soft">{{ q.category }}</span>{% endif %}
+          {% for tag in q.tags.all|slice:":3" %}<span class="tag-pill">{{ tag.name }}</span>{% endfor %}
+        </div>
+        <h2 class="text-lg font800 text-slate-950">{{ q.title }}</h2>
+        <p class="mt-2 line-clamp-2 text-sm text-slate-500">{{ q.body|striptags }}</p>
+        <p class="mt-4 text-xs text-slate-400">Asked by {{ q.author.username }} · {{ q.created_at|timesince }} ago</p>
+      </div>
+      <div class="grid min-w-64 grid-cols-4 gap-2 text-center text-xs text-slate-500">
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{{ q.score }}</strong> Score</div>
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{{ q.answer_count }}</strong> Answers</div>
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{{ q.view_count }}</strong> Views</div>
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{% if q.is_answered %}<i class="bi bi-check-lg text-green-600"></i>{% else %}-{% endif %}</strong> Solved</div>
+      </div>
+    </div>
+  </a>
+  {% empty %}
+  <div class="card-modern p-8 text-center text-slate-500">No questions yet.</div>
+  {% endfor %}
 </div>
-{% empty %}
-<p class="text-muted">No questions match. <a href="{% url 'qa:question_create' %}">Ask the first one</a>.</p>
-{% endfor %}
 {% endblock %}

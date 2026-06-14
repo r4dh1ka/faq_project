@@ -1,17 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}My Submissions{% endblock %}
 {% block content %}
-<h1>My FAQ Submissions</h1>
-<table class="table">
-  <thead><tr><th>Title</th><th>Status</th><th>Created</th></tr></thead>
-  <tbody>
-  {% for faq in faqs %}
-  <tr>
-    <td>{% if faq.status == 'published' %}<a href="{% url 'faqs:detail' faq.slug %}">{{ faq.title }}</a>{% else %}{{ faq.title }}{% endif %}</td>
-    <td><span class="badge bg-{% if faq.status == 'published' %}success{% elif faq.status == 'pending' %}warning{% else %}danger{% endif %}">{{ faq.get_status_display }}</span></td>
-    <td>{{ faq.created_at|date:"M d, Y" }}</td>
-  </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <p class="eyebrow mb-2">Workspace</p>
+    <h1 class="page-title">My Submissions</h1>
+    <p class="mt-2 text-slate-500">Track the review status of your FAQ contributions.</p>
+  </div>
+  <a href="{% url 'faqs:create' %}" class="btn-primary">Submit FAQ</a>
+</div>
+<div class="overflow-x-auto">
+  <table class="table-modern">
+    <thead><tr><th>Title</th><th>Status</th><th>Created</th></tr></thead>
+    <tbody>
+    {% for faq in faqs %}
+    <tr>
+      <td class="font700">{% if faq.status == 'published' %}<a href="{% url 'faqs:detail' faq.slug %}" class="hover:text-indigo-600">{{ faq.title }}</a>{% else %}{{ faq.title }}{% endif %}</td>
+      <td><span class="badge-soft">{{ faq.get_status_display }}</span></td>
+      <td class="text-sm text-slate-500">{{ faq.created_at|date:"M d, Y" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

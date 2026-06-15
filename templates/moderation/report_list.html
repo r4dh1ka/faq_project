@@ -1,17 +1,32 @@
 {% extends 'base.html' %}
 {% block title %}Reports{% endblock %}
 {% block content %}
-<h1>Unresolved Reports</h1>
-{% for r in reports %}
-<div class="card mb-2">
-  <div class="card-body">
-    <strong>{{ r.get_reason_display }}</strong> by {{ r.reporter.username }}
-    <p>{{ r.description }}</p>
-    <form method="post" action="{% url 'moderation:resolve_report' r.pk %}">{% csrf_token %}
-      <input name="note" class="form-control form-control-sm mb-2" placeholder="Resolution note">
-      <button class="btn btn-sm btn-success">Resolve</button>
+<div class="mb-8">
+  <p class="eyebrow mb-2">Moderation</p>
+  <h1 class="page-title">Unresolved Reports</h1>
+  <p class="mt-2 text-slate-500">Review and resolve flagged content.</p>
+</div>
+
+<div class="space-y-4">
+  {% for r in reports %}
+  <div class="card-modern p-5">
+    <div class="mb-3 flex flex-wrap items-center gap-2">
+      <span class="badge-soft badge-red">{{ r.get_reason_display }}</span>
+      <span class="text-xs text-slate-500">Reported by {{ r.reporter.username }}</span>
+    </div>
+    <p class="text-sm text-slate-700 mb-4">{{ r.description }}</p>
+    <form method="post" action="{% url 'moderation:resolve_report' r.pk %}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+      {% csrf_token %}
+      <input name="note" class="flex-1" placeholder="Resolution note (optional)">
+      <button class="btn-success" type="submit"><i class="bi bi-check-circle"></i> Resolve</button>
     </form>
   </div>
+  {% empty %}
+  <div class="card-modern p-10 text-center">
+    <i class="bi bi-shield-check text-3xl text-emerald-400"></i>
+    <p class="mt-3 font-semibold text-slate-700">No open reports</p>
+    <p class="mt-1 text-sm text-slate-500">The community is looking good.</p>
+  </div>
+  {% endfor %}
 </div>
-{% empty %}<p>No open reports.</p>{% endfor %}
 {% endblock %}

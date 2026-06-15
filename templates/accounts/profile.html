@@ -1,28 +1,89 @@
 {% extends 'base.html' %}
-{% block title %}{{ profile.user.username }} Profile{% endblock %}
+{% block title %}{{ profile.user.username }} — Profile{% endblock %}
 {% block content %}
-<div class="row">
-  <div class="col-md-4 text-center">
-    {% if profile.avatar %}<img src="{{ profile.avatar.url }}" class="rounded-circle img-thumbnail mb-3" width="120">{% else %}<i class="bi bi-person-circle display-1"></i>{% endif %}
-    <h2>
-      {{ profile.user.username }}
-      {% if profile.badge %}
-        <span class="badge rounded-pill bg-light border {{ profile.badge.color }} fs-6 ms-2" title="{{ profile.badge.name }}">
-          <i class="bi {{ profile.badge.icon }}"></i> {{ profile.badge.name }}
-        </span>
+
+<div class="profile-header mb-8">
+  <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+    <div class="flex-shrink-0">
+      {% if profile.avatar %}
+      <img src="{{ profile.avatar.url }}" class="avatar-xl rounded-full object-cover border-4 border-white shadow-lg" alt="{{ profile.user.username }}">
+      {% else %}
+      <span class="avatar avatar-xl shadow-lg">{{ profile.user.username|first|upper }}</span>
       {% endif %}
-    </h2>
-    <span class="badge bg-primary">{{ profile.get_role_display }}</span>
-    <p class="display-6 text-primary mt-2">{{ profile.reputation }} pts</p>
-    {% if is_own_profile %}<a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary btn-sm">Edit Profile</a>{% endif %}
-  </div>
-  <div class="col-md-8">
-    <h4>Bio</h4>
-    <p>{{ profile.bio|default:"No bio yet." }}</p>
-    <h4>Badges</h4>
-    <div class="d-flex flex-wrap gap-2">
-      {% for ub in badges %}<span class="badge bg-warning text-dark"><i class="bi {{ ub.badge.icon }}"></i> {{ ub.badge.name }}</span>{% empty %}<p class="text-muted">No badges yet.</p>{% endfor %}
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex flex-wrap items-center gap-3 mb-2">
+        <h1 class="text-2xl font-extrabold text-slate-900">{{ profile.user.username }}</h1>
+        <span class="badge-soft">{{ profile.get_role_display }}</span>
+      </div>
+      <p class="text-slate-500 text-sm max-w-xl">{{ profile.bio|default:"No bio added yet." }}</p>
+      {% if is_own_profile %}
+      <a href="{% url 'accounts:profile_edit' %}" class="btn-ghost mt-4 inline-flex"><i class="bi bi-pencil"></i> Edit Profile</a>
+      {% endif %}
+    </div>
+    <div class="text-right">
+      <p class="text-3xl font-extrabold text-indigo-600">{{ profile.reputation }}</p>
+      <p class="text-xs font-semibold uppercase text-slate-400 mt-1">Reputation</p>
     </div>
   </div>
+</div>
+
+<div class="grid gap-6 xl:grid-cols-[1fr_320px]">
+  <div class="space-y-6">
+    <section class="card-modern p-6">
+      <h2 class="section-title mb-5">Badges</h2>
+      {% if badges %}
+      <div class="flex flex-wrap gap-3">
+        {% for ub in badges %}
+        <div class="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+          <i class="bi {{ ub.badge.icon }}"></i> {{ ub.badge.name }}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-slate-500">No badges earned yet — keep contributing!</p>
+      {% endif %}
+    </section>
+
+    {% if recent_faqs %}
+    <section class="card-modern overflow-hidden">
+      <div class="border-b border-slate-100 px-6 py-4">
+        <h2 class="section-title">Recent FAQs</h2>
+      </div>
+      {% for faq in recent_faqs %}
+      <a href="{% url 'faqs:detail' faq.slug %}" class="block px-6 py-4 hover:bg-slate-50 transition {% if not forloop.last %}border-b border-slate-100{% endif %}">
+        <p class="font-bold text-slate-900">{{ faq.title }}</p>
+        <p class="text-xs text-slate-500 mt-1">{{ faq.category|default:"General" }} · {{ faq.updated_at|date:"M d, Y" }}</p>
+      </a>
+      {% endfor %}
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="space-y-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div class="stat-pill">
+        <p class="text-2xl font-extrabold text-slate-900">{{ profile.user.faqs.count|default:0 }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">FAQs</p>
+      </div>
+      <div class="stat-pill">
+        <p class="text-2xl font-extrabold text-slate-900">{{ profile.user.answers.count|default:0 }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Answers</p>
+      </div>
+      <div class="stat-pill">
+        <p class="text-2xl font-extrabold text-slate-900">{{ profile.user.questions.count|default:0 }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Questions</p>
+      </div>
+      <div class="stat-pill">
+        <p class="text-2xl font-extrabold text-indigo-600">{{ profile.reputation }}</p>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Rep</p>
+      </div>
+    </div>
+
+    <div class="card-modern p-5">
+      <h2 class="section-title mb-3">Member since</h2>
+      <p class="text-sm text-slate-600">{{ profile.user.date_joined|date:"F Y" }}</p>
+    </div>
+  </aside>
 </div>
 {% endblock %}

@@ -1,176 +1,225 @@
 {% extends 'base.html' %}
-{% load static crispy_forms_tags %}
+{% load crispy_forms_tags static %}
 {% block title %}{{ question.title }}{% endblock %}
 {% block content %}
-<div class="mb-4">
-  <div class="premium-card p-4">
-    <div class="question-meta-bar">
-      <span>
-        <i class="bi bi-person-circle"></i> <a href="{% url 'accounts:user_profile' question.author.username %}" class="text-decoration-none text-reset">{{ question.author.username }}</a>
-        {% if question.author.profile.badge %}
-          <span class="badge rounded-pill bg-light border {{ question.author.profile.badge.color }} ms-1" style="font-size: 0.7rem;" title="{{ question.author.profile.badge.name }}">
-            <i class="bi {{ question.author.profile.badge.icon }}"></i>
-          </span>
+
+<nav class="breadcrumb mb-6">
+  <a href="{% url 'faqs:home' %}">Dashboard</a>
+  <i class="bi bi-chevron-right text-xs"></i>
+  <a href="{% url 'qa:question_list' %}">Questions</a>
+  <i class="bi bi-chevron-right text-xs"></i>
+  <span class="text-slate-700 font-semibold truncate max-w-xs">{{ question.title }}</span>
+</nav>
+
+<div class="grid gap-6 xl:grid-cols-[1fr_280px]">
+  <div class="space-y-6 min-w-0">
+
+    <!-- Question card -->
+    <section class="card-modern overflow-hidden">
+      <div class="p-6">
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+          {% if question.category %}<span class="badge-soft">{{ question.category }}</span>{% endif %}
+          {% for tag in question.tags.all %}<span class="tag-pill">{{ tag.name }}</span>{% endfor %}
+        </div>
+        <h1 class="page-title">{{ question.title }}</h1>
+        <div class="prose mt-4 max-w-none text-slate-700 text-base leading-relaxed">{{ question.body|safe }}</div>
+
+        {% if question.images.exists %}
+        <div class="media-gallery mt-6">
+          {% for img in question.images.all %}
+          <a href="{{ img.image.url }}" data-lightbox title="{{ img.caption|default:'View full size' }}">
+            <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Attachment' }}" loading="lazy">
+          </a>
+          {% endfor %}
+        </div>
         {% endif %}
-      </span>
-      <span><i class="bi bi-clock"></i> {{ question.created_at|date:"M d, Y" }} ({{ question.created_at|timesince }} ago)</span>
-      <span><i class="bi bi-eye"></i> {{ question.view_count }} views</span>
-      <span><i class="bi bi-chat-dots"></i> {{ answers|length }} answers</span>
-      {% if question.category %}<span><i class="bi bi-folder"></i> {{ question.category.name }}</span>{% endif %}
-    </div>
 
-    <h1 class="mb-3">{{ question.title }}</h1>
-    <div class="mb-3 fs-5 question-body">{{ question.body|safe }}</div>
-
-    {% include 'qa/includes/image_gallery.html' with images=question.images.all %}
-
-    <div class="mt-3 mb-3">
-      {% for tag in question.tags.all %}<span class="badge bg-secondary">{{ tag.name }}</span>{% endfor %}
-    </div>
-
-    <div class="d-flex flex-wrap gap-2 align-items-center">
-      {% if user.is_authenticated %}
-      <form action="{% url 'qa:question_vote' question.pk %}" method="post" class="m-0">{% csrf_token %}
-        <input type="hidden" name="vote_type" value="1">
-        <button type="submit" class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-up"></i> {{ question.upvote_count }}</button>
-      </form>
-      <form action="{% url 'qa:question_vote' question.pk %}" method="post" class="m-0">{% csrf_token %}
-        <input type="hidden" name="vote_type" value="-1">
-        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-down"></i> {{ question.downvote_count }}</button>
-      </form>
-      <form action="{% url 'qa:bookmark' question.pk %}" method="post" class="m-0">{% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-bookmark{% if bookmarked %}-fill{% endif %}"></i> {% if bookmarked %}Saved{% else %}Bookmark{% endif %}
-        </button>
-      </form>
-      {% endif %}
-      <a href="{% url 'moderation:report' 'qa' 'question' question.pk %}" class="btn btn-sm btn-outline-warning"><i class="bi bi-flag"></i> Report</a>
-    </div>
-  </div>
-</div>
-
-{% if similar_faqs or related_questions %}
-<div class="row g-3 mb-4">
-  {% if similar_faqs %}
-  <div class="col-md-6">
-    <div class="premium-card p-3 h-100">
-      <h5 class="h6 text-muted mb-2"><i class="bi bi-journal-text"></i> Related FAQs</h5>
-      <ul class="mb-0 ps-3">{% for f in similar_faqs %}<li><a href="{{ f.get_absolute_url }}">{{ f.title }}</a></li>{% endfor %}</ul>
-    </div>
-  </div>
-  {% endif %}
-  {% if related_questions %}
-  <div class="col-md-6">
-    <div class="premium-card p-3 h-100">
-      <h5 class="h6 text-muted mb-2"><i class="bi bi-chat-square-text"></i> Related Questions</h5>
-      <ul class="mb-0 ps-3">{% for q in related_questions %}<li><a href="{{ q.get_absolute_url }}">{{ q.title }}</a></li>{% endfor %}</ul>
-    </div>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
-<hr class="my-4">
-<h3 class="mb-3">{{ answers|length }} Answer{{ answers|length|pluralize }}</h3>
-
-{% for answer in answers %}
-<div class="mb-4">
-  <div class="premium-card p-4 {% if answer.is_accepted %}border border-success{% endif %}">
-    {% if answer.is_accepted %}<span class="badge bg-success mb-2"><i class="bi bi-check-circle-fill"></i> Accepted Answer</span>{% endif %}
-
-    <div class="reddit-header">
-      {% if answer.author.username == 'YakshaBot' %}
-        <i class="bi bi-robot text-primary reddit-avatar-placeholder"></i>
-        <span class="author text-primary">{{ answer.author.username }} <span class="badge bg-primary ms-1" style="font-size: 0.6rem;">AI</span></span>
-      {% else %}
-        <i class="bi bi-person-circle reddit-avatar-placeholder"></i>
-        <a href="{% url 'accounts:user_profile' answer.author.username %}" class="author text-decoration-none">{{ answer.author.username }}</a>
-        {% if answer.author.profile.badge %}
-          <span class="badge rounded-pill bg-light border {{ answer.author.profile.badge.color }} me-2" style="font-size: 0.7rem;" title="{{ answer.author.profile.badge.name }}">
-            <i class="bi {{ answer.author.profile.badge.icon }}"></i>
+        <div class="mt-6 flex flex-wrap items-center gap-5 text-sm text-slate-500">
+          <span class="flex items-center gap-2">
+            <span class="avatar avatar-xs">{{ question.author.username|first|upper }}</span>
+            <strong class="text-slate-700">{{ question.author.username }}</strong>
           </span>
-        {% endif %}
-      {% endif %}
-      <span class="time">• {{ answer.created_at|timesince }} ago</span>
-    </div>
+          <span><i class="bi bi-calendar3 mr-1"></i>{{ question.created_at|date:"M d, Y" }}</span>
+          <span><i class="bi bi-eye mr-1"></i>{{ question.view_count }} views</span>
+        </div>
+      </div>
 
-    <div class="fs-6 mt-2 mb-2 answer-body">{{ answer.body|safe }}</div>
-    {% include 'qa/includes/image_gallery.html' with images=answer.images.all %}
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
+        <div class="flex gap-2">
+          {% if user.is_authenticated %}
+          <form action="{% url 'qa:question_vote' question.pk %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="vote_type" value="1">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn-success"><i class="bi bi-arrow-up"></i> {{ question.upvote_count }}</button>
+          </form>
+          <form action="{% url 'qa:question_vote' question.pk %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="vote_type" value="-1">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn-danger"><i class="bi bi-arrow-down"></i> {{ question.downvote_count }}</button>
+          </form>
+          {% endif %}
+        </div>
+        <div class="flex gap-2">
+          <button type="button" class="btn-ghost" onclick="navigator.clipboard.writeText(window.location.href).then(()=>this.textContent='Copied!')">
+            <i class="bi bi-share"></i> Share
+          </button>
+          <a href="{% url 'moderation:report' 'qa' 'question' question.pk %}" class="btn-ghost">
+            <i class="bi bi-flag"></i> Report
+          </a>
+        </div>
+      </div>
+    </section>
 
-    {% if user.is_authenticated %}
-    <div class="reddit-action-bar mt-3">
-      <form action="{% url 'qa:answer_vote' answer.pk %}" method="post" class="m-0">{% csrf_token %}
-        <input type="hidden" name="vote_type" value="1">
-        <button type="submit" class="reddit-btn upvote" title="Upvote"><i class="bi bi-arrow-up-short fs-5"></i></button>
-      </form>
-      <span class="fw-bold" style="font-size: 0.8rem; color: #878a8c;">{{ answer.score }}</span>
-      <form action="{% url 'qa:answer_vote' answer.pk %}" method="post" class="m-0">{% csrf_token %}
-        <input type="hidden" name="vote_type" value="-1">
-        <button type="submit" class="reddit-btn downvote" title="Downvote"><i class="bi bi-arrow-down-short fs-5"></i></button>
-      </form>
-      <button class="reddit-btn ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyToAnswer{{ answer.pk }}">
-        <i class="bi bi-chat"></i> Reply
-      </button>
-      {% if question.author == user and not answer.is_accepted %}
-      <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="m-0 ms-auto">{% csrf_token %}
-        <button class="btn btn-sm btn-success rounded-pill px-3"><i class="bi bi-check-circle-fill"></i> Accept</button>
-      </form>
-      {% endif %}
-      <a href="{% url 'moderation:report' 'qa' 'answer' answer.pk %}" class="reddit-btn ms-2 text-warning text-decoration-none" title="Report answer"><i class="bi bi-flag"></i></a>
-    </div>
+    <!-- Related FAQs -->
+    {% if similar_faqs %}
+    <section>
+      <h2 class="section-title mb-4">Related FAQs</h2>
+      <div class="grid gap-3 md:grid-cols-3">
+        {% for f in similar_faqs %}
+        <a href="{{ f.get_absolute_url }}" class="card-modern block p-4 text-sm font-bold text-slate-700 hover:text-indigo-700">{{ f.title }}</a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
-    <div class="collapse mt-2" id="replyToAnswer{{ answer.pk }}">
-      <form method="post" action="{% url 'qa:comment_create' answer.pk %}">{% csrf_token %}
-        {{ comment_form.body }}
-        <button type="submit" class="btn btn-sm btn-light mt-2 rounded-pill fw-bold px-3">Reply</button>
+    <!-- Answers -->
+    <section>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">{{ answers|length }} Answer{{ answers|length|pluralize }}</h2>
+          <p class="text-sm text-slate-500">Accepted answers are highlighted.</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        {% for answer in answers %}
+        <article class="card-modern overflow-hidden {% if answer.is_accepted %}border-emerald-200 bg-emerald-50/30{% endif %}">
+          <div class="p-5">
+            <div class="mb-4 flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3">
+                <span class="avatar avatar-sm {% if answer.author.username == 'YakshaBot' %}bg-indigo-600{% endif %}">
+                  {{ answer.author.username|first|upper }}
+                </span>
+                <div>
+                  <p class="font-bold text-slate-900">
+                    {{ answer.author.username }}
+                    {% if answer.author.username == 'YakshaBot' %}<span class="badge-soft ml-2">AI</span>{% endif %}
+                  </p>
+                  <p class="text-xs text-slate-500">{{ answer.created_at|timesince }} ago · {{ answer.author.profile.reputation|default:0 }} rep</p>
+                </div>
+              </div>
+              {% if answer.is_accepted %}
+              <span class="badge-soft badge-green flex-shrink-0"><i class="bi bi-check-circle"></i> Accepted</span>
+              {% endif %}
+            </div>
+
+            <div class="prose max-w-none text-slate-700 leading-relaxed">{{ answer.body|safe }}</div>
+
+            {% if answer.images.exists %}
+            <div class="media-gallery mt-4">
+              {% for img in answer.images.all %}
+              <a href="{{ img.image.url }}" data-lightbox title="{{ img.caption|default:'View full size' }}">
+                <img src="{{ img.image.url }}" alt="{{ img.caption|default:'Attachment' }}" loading="lazy">
+              </a>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          {% if user.is_authenticated %}
+          <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-white px-5 py-3">
+            <form action="{% url 'qa:answer_vote' answer.pk %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="vote_type" value="1">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn-ghost"><i class="bi bi-arrow-up"></i></button>
+            </form>
+            <span class="px-2 text-sm font-bold text-slate-600">{{ answer.score }}</span>
+            <form action="{% url 'qa:answer_vote' answer.pk %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="vote_type" value="-1">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn-ghost"><i class="bi bi-arrow-down"></i></button>
+            </form>
+            <button class="btn-ghost" type="button" data-reply-toggle="replyToAnswer{{ answer.pk }}">
+              <i class="bi bi-chat"></i> Reply
+            </button>
+            {% if question.author == user and not answer.is_accepted %}
+            <form method="post" action="{% url 'qa:accept_answer' answer.pk %}" class="ml-auto">
+              {% csrf_token %}
+              <button class="btn-success"><i class="bi bi-check-circle"></i> Accept</button>
+            </form>
+            {% endif %}
+          </div>
+
+          <div class="hidden border-t border-slate-100 p-5" id="replyToAnswer{{ answer.pk }}">
+            <form method="post" action="{% url 'qa:comment_create' answer.pk %}">
+              {% csrf_token %}
+              {{ comment_form.body }}
+              <button type="submit" class="btn-primary mt-3">Post Reply</button>
+            </form>
+          </div>
+          {% endif %}
+
+          {% if answer.comments.exists %}
+          <div class="border-t border-slate-100 bg-slate-50/60 p-5">
+            <div class="thread-children">
+              <div class="threadline"></div>
+              {% for comment in answer.comments.all %}
+                {% if not comment.parent %}
+                  {% include 'qa/includes/comment.html' with comment=comment %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </article>
+        {% empty %}
+        <div class="card-modern p-10 text-center">
+          <i class="bi bi-chat-square text-3xl text-slate-300"></i>
+          <p class="mt-3 text-slate-500">No answers yet. Be the first to help!</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Answer form -->
+    {% if form %}
+    <section class="card-modern p-6">
+      <h2 class="section-title mb-5">Your Answer</h2>
+      <form method="post" action="{% url 'qa:answer_create' question.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div id="answer-image-preview" class="image-preview-grid mt-2"></div>
+        <button class="btn-primary mt-4">Post Answer</button>
       </form>
+    </section>
+    {% else %}
+    <div class="card-modern p-6 text-center">
+      <p class="text-slate-500">
+        <a href="{% url 'accounts:login' %}" class="font-bold text-indigo-600 hover:text-indigo-700">Sign in</a> to post an answer.
+      </p>
     </div>
     {% endif %}
   </div>
 
-  <div class="thread-container mt-2">
-    {% if answer.comments.exists %}
-    <div class="thread-children mt-0">
-      <div class="threadline" style="width: 1px; background-color: rgba(255,255,255,0.15);"></div>
-      {% for comment in answer.comments.all %}
-        {% if not comment.parent %}
-          {% include 'qa/includes/comment.html' with comment=comment %}
-        {% endif %}
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-</div>
-{% empty %}
-<p class="text-muted">No answers yet. Be the first to answer!</p>
-{% endfor %}
-
-{% if form %}
-<hr class="my-4">
-<h3>Your Answer</h3>
-<form method="post" action="{% url 'qa:answer_create' question.pk %}" enctype="multipart/form-data" class="premium-card p-4 mt-3">
-  {% csrf_token %}
-  {{ form|crispy }}
-  <div class="mb-3">
-    <label class="form-label" for="answer-images">Attach images (optional)</label>
-    <input type="file" name="images" id="answer-images" class="form-control" accept="image/*" multiple>
-    <div class="form-text">Screenshots, step-by-step visuals — up to {{ max_images }} images</div>
-    <div id="answer-image-preview" class="row g-2 mt-2"></div>
-  </div>
-  <button class="btn btn-primary rounded-pill px-4" type="submit">Post Answer</button>
-</form>
-{% endif %}
-
-<div class="modal fade" id="imageLightbox" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content bg-dark border-0">
-      <div class="modal-body p-2 text-center">
-        <img id="lightbox-image" src="" alt="Full size" class="img-fluid rounded" style="max-height: 85vh;">
+  <!-- Sidebar -->
+  <aside class="space-y-4">
+    <div class="card-modern p-5">
+      <h2 class="section-title mb-4">Stats</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Score</span><strong>{{ question.score }}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-500">Views</span><strong>{{ question.view_count }}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-500">Answers</span><strong>{{ answers|length }}</strong></div>
+        <div class="flex justify-between"><span class="text-slate-500">Asked</span><strong>{{ question.created_at|date:"M d, Y" }}</strong></div>
       </div>
     </div>
-  </div>
+  </aside>
 </div>
-{% endblock %}
+
 {% block extra_js %}
-<script src="{% static 'js/qa-images.js' %}"></script>
+<script src="{% static 'js/qa-images.js' %}?v=2"></script>
+{% endblock %}
 {% endblock %}

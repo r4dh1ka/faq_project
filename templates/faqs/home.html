@@ -1,112 +1,111 @@
 {% extends 'base.html' %}
-{% block title %}Home — FAQ Platform{% endblock %}
+{% block title %}Dashboard - FAQ Platform{% endblock %}
 {% block content %}
-<div class="animated-mesh-hero rounded-5 p-5 mb-5 position-relative overflow-hidden shadow-lg mt-3">
-  <div class="position-relative text-center" style="z-index: 1;">
-    <h1 class="display-4 fw-bold mb-3">The Future of Campus Knowledge</h1>
-    <p class="lead mb-4 text-muted mx-auto" style="max-width: 600px;">Browse {{ faq_total }}+ expert answers, ask the community, and get instant help from Yaksha AI.</p>
-    <form action="{% url 'faqs:list' %}" method="get" class="d-flex justify-content-center mx-auto mb-4" style="max-width: 500px;">
-      <div class="input-group input-group-lg shadow-sm">
-        <input type="search" name="q" class="form-control glass-search border-0" placeholder="Ask anything..." style="background: rgba(128,128,128,0.1); backdrop-filter: blur(10px);">
-        <button class="btn btn-primary px-4" type="submit" aria-label="Search"><i class="bi bi-magic"></i></button>
+<section class="hero-panel mb-8">
+  <div class="max-w-3xl">
+    <p class="eyebrow mb-3">Knowledge dashboard</p>
+    <h1 class="page-title mb-4">Community Powered Knowledge Base</h1>
+    <p class="mb-6 max-w-2xl text-base text-slate-600">Find answers, contribute knowledge, and help others.</p>
+    <form method="get" action="{% url 'faqs:list' %}" class="flex flex-col gap-3 sm:flex-row">
+      <div class="relative flex-1">
+        <i class="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input class="search-input" name="q" type="search" aria-label="Search FAQs" placeholder="Search FAQs, topics, policies...">
       </div>
+      <a href="{% url 'qa:question_create' %}" class="btn-primary">Ask Question</a>
     </form>
-    <div class="d-flex justify-content-center flex-wrap gap-3">
-      <span class="home-stat-pill"><i class="bi bi-journal-check"></i> {{ faq_total }} FAQs</span>
-      <a href="{% url 'faqs:list' %}" class="btn btn-light rounded-pill px-4 fw-semibold">Explore Knowledge</a>
-      <a href="{% url 'qa:question_create' %}" class="btn btn-outline-light rounded-pill px-4 fw-semibold">Ask a Question</a>
-    </div>
   </div>
-</div>
+</section>
 
-<h2 class="h4 mb-3"><i class="bi bi-star-fill text-warning"></i> Featured FAQs</h2>
-<div class="row g-3 mb-5">
-  {% for faq in featured %}
-  <div class="col-md-4">
-    <div class="premium-card h-100">
-      <div class="card-body">
-        <span class="badge bg-secondary">{{ faq.category }}</span>
-        <h5 class="card-title mt-2"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
-        <p class="card-text small text-muted mb-0">{{ faq.view_count }} views · {{ faq.score }} score</p>
+<section class="mb-8">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Popular Categories</h2>
+      <p class="text-sm text-slate-500">Browse high-signal topics by department.</p>
+    </div>
+    <a href="{% url 'faqs:list' %}" class="btn-ghost">View all</a>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    {% for cat in categories %}
+    <a href="{% url 'faqs:category' cat.slug %}" class="card-modern p-5">
+      <div class="mb-4 flex items-center justify-between">
+        <span class="grid h-11 w-11 place-items-center rounded-lg bg-indigo-50 text-indigo-600"><i class="bi {{ cat.icon|default:'bi-folder' }}"></i></span>
+        <i class="bi bi-arrow-up-right text-slate-300"></i>
+      </div>
+      <h3 class="font800 text-slate-950">{{ cat.name }}</h3>
+      <p class="mt-1 line-clamp-2 text-sm text-slate-500">{{ cat.description|default:"Community answers and FAQs." }}</p>
+      <p class="mt-4 text-xs font700 text-slate-400">{{ cat.faqs.count }} questions</p>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="grid gap-8 xl:grid-cols-[1.25fr_0.75fr]">
+  <section>
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Trending Questions</h2>
+        <p class="text-sm text-slate-500">Popular FAQs ranked by views and helpful votes.</p>
       </div>
     </div>
-  </div>
-  {% empty %}
-  <p class="text-muted">Run <code>python manage.py seed_faqs</code> to populate the knowledge base.</p>
-  {% endfor %}
-</div>
+    <div class="space-y-4">
+      {% for faq in trending %}
+      <a href="{% url 'faqs:detail' faq.slug %}" class="card-modern block p-5">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="badge-soft">{{ faq.category|default:"General" }}</span>
+          {% for tag in faq.tags.all|slice:":2" %}<span class="tag-pill">{{ tag }}</span>{% endfor %}
+        </div>
+        <h3 class="text-lg font800 text-slate-950">{{ faq.title }}</h3>
+        <p class="mt-2 line-clamp-2 text-sm text-slate-500">{{ faq.question|striptags }}</p>
+        <div class="mt-5 flex flex-wrap gap-4 text-sm text-slate-500">
+          <span><i class="bi bi-eye"></i> {{ faq.view_count }} views</span>
+          <span><i class="bi bi-hand-thumbs-up"></i> {{ faq.score }} score</span>
+          <span><i class="bi bi-clock"></i> {{ faq.updated_at|date:"M d" }}</span>
+        </div>
+      </a>
+      {% empty %}
+      <div class="card-modern p-6 text-sm text-slate-500">No FAQs yet. Start by adding one from the sidebar.</div>
+      {% endfor %}
+    </div>
+  </section>
 
-<h2 class="h4 mb-4"><i class="bi bi-grid"></i> Explore by Category</h2>
-<div class="row g-3 mb-5">
-  {% for cat in categories %}
-  <div class="col-6 {% cycle 'col-md-4 col-lg-3' 'col-md-8 col-lg-5' 'col-md-4 col-lg-4' %}">
-    <a href="{% url 'faqs:category' cat.slug %}" class="text-decoration-none">
-      <div class="premium-card text-center h-100 d-flex flex-column justify-content-center align-items-center" style="min-height: 140px;">
-        <div class="card-body py-3">
-          <i class="bi {{ cat.icon|default:'bi-folder' }} fs-2 text-primary mb-2"></i>
-          <h5 class="mb-0 text-body">{{ cat.name }}</h5>
-          <small class="text-muted">{{ cat.faq_count }} FAQs</small>
+  <aside class="space-y-8">
+    <section>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Recent Questions</h2>
+          <p class="text-sm text-slate-500">Freshly published knowledge.</p>
         </div>
       </div>
-    </a>
-  </div>
-  {% endfor %}
-</div>
-
-<div class="row g-4 mb-5">
-  <div class="col-lg-6">
-    <h2 class="h4 mb-3"><i class="bi bi-fire"></i> Trending FAQs</h2>
-    <div class="d-flex flex-column gap-2">
-      {% for faq in trending %}
-      <div class="premium-card p-3 d-flex justify-content-between align-items-center">
-        <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
-        <small class="text-muted">{{ faq.view_count }} views</small>
+      <div class="card-modern divide-y divide-slate-100">
+        {% for faq in recent %}
+        <a href="{% url 'faqs:detail' faq.slug %}" class="block p-4 transition hover:bg-slate-50">
+          <p class="font700 text-slate-900">{{ faq.title }}</p>
+          <p class="mt-1 text-xs text-slate-500">{{ faq.category|default:"General" }} · {{ faq.published_at|date:"M d, Y" }}</p>
+        </a>
+        {% empty %}
+        <div class="p-4 text-sm text-slate-500">No recent FAQs yet.</div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </div>
-  <div class="col-lg-6">
-    <h2 class="h4 mb-3"><i class="bi bi-clock"></i> Recently Published</h2>
-    <div class="d-flex flex-column gap-2">
-      {% for faq in recent_faqs %}
-      <div class="premium-card p-3 d-flex justify-content-between align-items-center">
-        <a href="{% url 'faqs:detail' faq.slug %}" class="fw-bold text-decoration-none">{{ faq.title }}</a>
-        <small class="text-muted">{{ faq.published_at|date:"M d" }}</small>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
+    </section>
 
-<div class="row g-4 mb-4">
-  <div class="col-lg-4">
-    <h2 class="h5 mb-3"><i class="bi bi-chat-dots"></i> Recent Questions</h2>
-    {% for q in recent_questions %}
-    <div class="premium-card p-2 mb-2">
-      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
-      <div class="text-muted" style="font-size: 0.75rem;">{{ q.author.username }} · {{ q.created_at|timesince }} ago</div>
-    </div>
-    {% empty %}<p class="text-muted small">No community questions yet.</p>{% endfor %}
-    <a href="{% url 'qa:question_list' %}" class="btn btn-sm btn-outline-primary mt-2">View all Q&amp;A</a>
-  </div>
-  <div class="col-lg-4">
-    <h2 class="h5 mb-3"><i class="bi bi-eye"></i> Most Viewed Questions</h2>
-    {% for q in most_viewed_questions %}
-    <div class="premium-card p-2 mb-2">
-      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
-      <div class="text-muted" style="font-size: 0.75rem;">{{ q.view_count }} views</div>
-    </div>
-    {% empty %}<p class="text-muted small">—</p>{% endfor %}
-  </div>
-  <div class="col-lg-4">
-    <h2 class="h5 mb-3"><i class="bi bi-question-circle"></i> Unanswered Questions</h2>
-    {% for q in unanswered %}
-    <div class="premium-card p-2 mb-2 border-start border-warning border-3">
-      <a href="{{ q.get_absolute_url }}" class="small fw-semibold text-decoration-none">{{ q.title }}</a>
-      <div class="text-muted" style="font-size: 0.75rem;">Needs an answer</div>
-    </div>
-    {% empty %}<p class="text-muted small">All caught up!</p>{% endfor %}
-    <a href="{% url 'qa:question_create' %}" class="btn btn-sm btn-warning mt-2">Answer one</a>
-  </div>
+    <section>
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Featured FAQs</h2>
+          <p class="text-sm text-slate-500">Quick answers worth bookmarking.</p>
+        </div>
+      </div>
+      <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-5">
+        {% for faq in trending|slice:":1" %}
+        <p class="text-sm font800 text-indigo-700">{{ faq.category|default:"Featured" }}</p>
+        <h3 class="mt-2 text-xl font800 text-slate-950">{{ faq.title }}</h3>
+        <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ faq.answer|striptags }}</p>
+        <a href="{% url 'faqs:detail' faq.slug %}" class="mt-4 inline-flex text-sm font800 text-indigo-700">Open FAQ <i class="bi bi-arrow-right ml-2"></i></a>
+        {% empty %}
+        <p class="text-sm text-slate-600">Featured FAQs will appear here once published.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
 </div>
 {% endblock %}

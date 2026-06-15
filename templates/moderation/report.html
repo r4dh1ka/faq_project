@@ -2,6 +2,19 @@
 {% load crispy_forms_tags %}
 {% block title %}Report Content{% endblock %}
 {% block content %}
-<h1>Report Content</h1>
-<form method="post">{% csrf_token %}{{ form|crispy }}<button class="btn btn-warning">Submit Report</button></form>
+<div class="mx-auto max-w-2xl">
+  <div class="mb-6">
+    <p class="eyebrow mb-2">Moderation</p>
+    <h1 class="page-title">Report Content</h1>
+    <p class="mt-2 text-slate-500">Help us keep the community safe and accurate.</p>
+  </div>
+  <form method="post" class="card-modern space-y-5 p-6">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+      <a href="{% url 'faqs:home' %}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-danger">Submit Report</button>
+    </div>
+  </form>
+</div>
 {% endblock %}

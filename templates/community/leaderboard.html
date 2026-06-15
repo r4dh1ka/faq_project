@@ -1,29 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Leaderboard{% endblock %}
 {% block content %}
-<h1>Leaderboard — {{ period|title }}</h1>
-<div class="btn-group mb-3">
-  <a href="{% url 'community:leaderboard' %}" class="btn btn-outline-primary {% if period == 'overall' %}active{% endif %}">Overall</a>
-  <a href="{% url 'community:leaderboard_weekly' %}" class="btn btn-outline-primary {% if period == 'weekly' %}active{% endif %}">Weekly</a>
-  <a href="{% url 'community:leaderboard_monthly' %}" class="btn btn-outline-primary {% if period == 'monthly' %}active{% endif %}">Monthly</a>
+<div class="mb-8">
+  <p class="eyebrow mb-2">Community</p>
+  <h1 class="page-title">Leaderboard</h1>
+  <p class="mt-2 text-slate-500">Top contributors ranked by reputation and answers.</p>
 </div>
-<table class="table table-striped">
-  <thead><tr><th>#</th><th>User</th><th>Points</th></tr></thead>
-  <tbody>
+
+<div class="mb-6 flex gap-2">
+  <a href="{% url 'community:leaderboard' %}" class="btn-ghost {% if period == 'overall' %}bg-indigo-50 border-indigo-200 text-indigo-700{% endif %}">Overall</a>
+  <a href="{% url 'community:leaderboard_weekly' %}" class="btn-ghost {% if period == 'weekly' %}bg-indigo-50 border-indigo-200 text-indigo-700{% endif %}">Weekly</a>
+  <a href="{% url 'community:leaderboard_monthly' %}" class="btn-ghost {% if period == 'monthly' %}bg-indigo-50 border-indigo-200 text-indigo-700{% endif %}">Monthly</a>
+</div>
+
+<div class="card-modern overflow-hidden">
   {% for profile in profiles %}
-  <tr>
-    <td>{{ forloop.counter }}</td>
-    <td>
-      <a href="{% url 'accounts:user_profile' profile.user.username %}" class="fw-bold text-decoration-none">{{ profile.user.username }}</a>
-      {% if profile.badge %}
-        <span class="badge rounded-pill bg-light border {{ profile.badge.color }} ms-2" title="{{ profile.badge.name }}">
-          <i class="bi {{ profile.badge.icon }}"></i> {{ profile.badge.name }}
-        </span>
-      {% endif %}
-    </td>
-    <td><span class="fw-bold text-success">{{ profile.display_points }}</span></td>
-  </tr>
+  {% with rank=forloop.counter %}
+  <a href="{% url 'accounts:user_profile' profile.user.username %}" class="leaderboard-row {% if rank <= 3 %}top-3{% endif %} {% if not forloop.last %}border-b border-slate-100{% endif %}">
+    <span class="rank-badge {% if rank == 1 %}rank-1{% elif rank == 2 %}rank-2{% elif rank == 3 %}rank-3{% else %}rank-n{% endif %}">
+      {% if rank == 1 %}<i class="bi bi-trophy"></i>{% else %}{{ rank }}{% endif %}
+    </span>
+    <span class="avatar avatar-sm">{{ profile.user.username|first|upper }}</span>
+    <div class="flex-1 min-w-0">
+      <p class="font-bold text-slate-900 truncate">{{ profile.user.username }}</p>
+      <p class="text-xs text-slate-500">{{ profile.get_role_display }}</p>
+    </div>
+    <div class="text-right">
+      <p class="font-bold text-slate-900">{{ profile.display_points }}</p>
+      <p class="text-xs text-slate-500">points</p>
+    </div>
+  </a>
+  {% endwith %}
+  {% empty %}
+  <div class="p-8 text-center text-slate-500">No contributors yet.</div>
   {% endfor %}
-  </tbody>
-</table>
+</div>
 {% endblock %}

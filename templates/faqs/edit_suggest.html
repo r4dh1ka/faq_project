@@ -2,6 +2,19 @@
 {% load crispy_forms_tags %}
 {% block title %}Suggest Edit{% endblock %}
 {% block content %}
-<h1>Suggest Edit: {{ faq.title }}</h1>
-<form method="post">{% csrf_token %}{{ form|crispy }}<button class="btn btn-primary">Submit Suggestion</button></form>
+<div class="mx-auto max-w-3xl">
+  <div class="mb-6">
+    <p class="eyebrow mb-2">Community edit</p>
+    <h1 class="page-title">Suggest Edit</h1>
+    <p class="mt-2 text-slate-500">{{ faq.title }}</p>
+  </div>
+  <form method="post" class="card-modern space-y-5 p-6">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
+      <a href="{% url 'faqs:detail' faq.slug %}" class="btn-ghost">Cancel</a>
+      <button class="btn-primary">Submit Suggestion</button>
+    </div>
+  </form>
+</div>
 {% endblock %}

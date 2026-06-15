@@ -1,67 +1,57 @@
 {% extends 'base.html' %}
-{% block title %}Browse & Search{% endblock %}
+{% block title %}FAQs - Browse Knowledge{% endblock %}
 {% block content %}
-<h1 class="mb-2">Search Knowledge Base</h1>
-<p class="text-muted mb-4">Full-text search across FAQ titles, answers, tags, and community questions.</p>
-
-<form method="get" class="premium-card p-4 mb-4">
-  <div class="row g-3">
-    <div class="col-md-5">
-      <label class="form-label small text-muted">Keywords</label>
-      <input name="q" class="form-control" placeholder="Search title, answer, tags..." value="{{ form.q.value|default:search_query }}">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label small text-muted">Category (slug)</label>
-      <input name="category" class="form-control" placeholder="e.g. hostel" value="{{ form.category.value|default:'' }}">
-    </div>
-    <div class="col-md-2">
-      <label class="form-label small text-muted">Tag</label>
-      <input name="tag" class="form-control" placeholder="wifi" value="{{ form.tag.value|default:'' }}">
-    </div>
-    <div class="col-md-2">
-      <label class="form-label small text-muted">Sort</label>
-      <select name="sort" class="form-select">
-        <option value="">Relevance / Popular</option>
-        <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
-        <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>
-        <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most Viewed</option>
-        <option value="title" {% if form.sort.value == 'title' %}selected{% endif %}>Title A–Z</option>
-      </select>
-    </div>
-    <div class="col-12">
-      <button class="btn btn-primary rounded-pill px-4" type="submit"><i class="bi bi-search"></i> Search</button>
-      <a href="{% url 'faqs:list' %}" class="btn btn-outline-secondary ms-2">Clear</a>
-    </div>
+<div class="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+  <div>
+    <p class="eyebrow mb-2">Knowledge base</p>
+    <h1 class="page-title">FAQs</h1>
+    <p class="mt-2 text-slate-500">Search answers, filter by topic, and discover related guidance.</p>
   </div>
+  <a href="{% url 'faqs:create' %}" class="btn-primary"><i class="bi bi-plus-lg"></i> Submit FAQ</a>
+</div>
+
+<form method="get" class="card-modern mb-6 grid gap-3 p-4 md:grid-cols-[1.5fr_1fr_1fr_0.8fr_auto]">
+  <input name="q" placeholder="Search questions" aria-label="Search questions" value="{{ form.q.value|default:'' }}">
+  <input name="category" placeholder="Category slug" aria-label="Category slug" value="{{ form.category.value|default:'' }}">
+  <input name="tag" placeholder="Tag" aria-label="Tag" value="{{ form.tag.value|default:'' }}">
+  <select name="sort" aria-label="Sort by">
+    <option value="">Relevance</option>
+    <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
+    <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>
+    <option value="views" {% if form.sort.value == 'views' %}selected{% endif %}>Most viewed</option>
+  </select>
+  <button class="btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
 </form>
 
-{% if search_query %}
-<p class="text-muted">Showing results for <strong>{{ search_query }}</strong></p>
-{% endif %}
-
-<h2 class="h5 mb-3">FAQs <span class="badge bg-primary">{{ faqs|length }}</span></h2>
-{% for faq in faqs %}
-<div class="premium-card mb-3 p-3">
-  <h5 class="fw-bold mb-1"><a href="{% url 'faqs:detail' faq.slug %}" class="text-decoration-none">{{ faq.title }}</a></h5>
-  <p class="text-muted small mb-2">
-    {% if faq.category %}{{ faq.category }}{% endif %}
-    {% if faq.subcategory %} › {{ faq.subcategory.name }}{% endif %}
-    · {{ faq.view_count }} views · Score {{ faq.score }}
-  </p>
-  {% for tag in faq.tags.all %}<span class="badge bg-secondary me-1">{{ tag }}</span>{% endfor %}
+<div class="grid gap-4">
+  {% for faq in faqs %}
+  <a href="{% url 'faqs:detail' faq.slug %}" class="card-modern block p-5">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="min-w-0">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="badge-soft">{{ faq.category|default:"General" }}</span>
+          {% for tag in faq.tags.all|slice:":3" %}<span class="tag-pill">{{ tag }}</span>{% endfor %}
+        </div>
+        <h2 class="text-lg font800 text-slate-950">{{ faq.title }}</h2>
+        <p class="mt-2 line-clamp-2 text-sm text-slate-500">{{ faq.question|striptags }}</p>
+      </div>
+      <div class="grid min-w-52 grid-cols-3 gap-2 text-center text-xs text-slate-500">
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{{ faq.upvote_count }}</strong> Helpful</div>
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">{{ faq.view_count }}</strong> Views</div>
+        <div class="rounded-lg bg-slate-50 p-3"><strong class="block text-base text-slate-900">v{{ faq.version }}</strong> Updated</div>
+      </div>
+    </div>
+    <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-400">
+      <span>By {{ faq.author|default:"Community" }}</span>
+      <span>Last updated {{ faq.updated_at|date:"M d, Y" }}</span>
+    </div>
+  </a>
+  {% empty %}
+  <div class="card-modern p-8 text-center">
+    <h2 class="text-lg font800 text-slate-950">No matching FAQs</h2>
+    <p class="mt-2 text-sm text-slate-500">Try a different keyword or ask the community.</p>
+    <a href="{% url 'qa:question_create' %}" class="btn-primary mt-5">Ask Question</a>
+  </div>
+  {% endfor %}
 </div>
-{% empty %}
-<p class="text-muted">No FAQs match your search.</p>
-{% endfor %}
-
-{% if community_questions %}
-<hr class="my-4">
-<h2 class="h5 mb-3">Community Questions <span class="badge bg-secondary">{{ community_questions|length }}</span></h2>
-{% for q in community_questions %}
-<div class="premium-card mb-3 p-3">
-  <h5 class="mb-1"><a href="{{ q.get_absolute_url }}" class="text-decoration-none">{{ q.title }}</a></h5>
-  <p class="text-muted small mb-0">{{ q.author.username }} · {{ q.view_count }} views · {{ q.answer_count }} answers</p>
-</div>
-{% endfor %}
-{% endif %}
 {% endblock %}

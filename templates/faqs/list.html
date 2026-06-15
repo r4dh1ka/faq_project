@@ -11,10 +11,10 @@
 </div>
 
 <form method="get" class="card-modern mb-6 grid gap-3 p-4 md:grid-cols-[1.5fr_1fr_1fr_0.8fr_auto]">
-  <input name="q" placeholder="Search questions" value="{{ form.q.value|default:'' }}">
-  <input name="category" placeholder="Category slug" value="{{ form.category.value|default:'' }}">
-  <input name="tag" placeholder="Tag" value="{{ form.tag.value|default:'' }}">
-  <select name="sort">
+  <input name="q" placeholder="Search questions" aria-label="Search questions" value="{{ form.q.value|default:'' }}">
+  <input name="category" placeholder="Category slug" aria-label="Category slug" value="{{ form.category.value|default:'' }}">
+  <input name="tag" placeholder="Tag" aria-label="Tag" value="{{ form.tag.value|default:'' }}">
+  <select name="sort" aria-label="Sort by">
     <option value="">Relevance</option>
     <option value="popular" {% if form.sort.value == 'popular' %}selected{% endif %}>Popular</option>
     <option value="recent" {% if form.sort.value == 'recent' %}selected{% endif %}>Recent</option>

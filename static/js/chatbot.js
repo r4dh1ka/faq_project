@@ -56,8 +56,8 @@
       const data = await res.json();
       thinking.remove();
       appendMsg(data.reply || 'No response.', 'bot', data.sources);
+      if (suggestionsEl) suggestionsEl.innerHTML = '';
       if (data.suggested?.length && suggestionsEl) {
-        suggestionsEl.innerHTML = '';
         data.suggested.forEach((s) => {
           const btn = document.createElement('button');
           btn.type = 'button';

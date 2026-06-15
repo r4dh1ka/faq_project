@@ -12,7 +12,7 @@
     {% csrf_token %}
     {{ form|crispy }}
     <div class="flex justify-end gap-3 border-t border-slate-100 pt-5">
-      <a href="javascript:history.back()" class="btn-ghost">Cancel</a>
+      <a href="{% url 'faqs:home' %}" class="btn-ghost">Cancel</a>
       <button type="submit" class="btn-danger">Submit Report</button>
     </div>
   </form>

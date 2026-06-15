@@ -36,7 +36,7 @@
 </div>
 
 <div class="flex flex-wrap gap-3">
-  <a href="/admin/" class="btn-primary"><i class="bi bi-gear"></i> Django Admin</a>
+  <a href="{% url 'admin:index' %}" class="btn-primary"><i class="bi bi-gear"></i> Django Admin</a>
   <a href="{% url 'faqs:pending' %}" class="btn-ghost"><i class="bi bi-shield-check"></i> Review Queue</a>
   <a href="{% url 'moderation:report_list' %}" class="btn-ghost"><i class="bi bi-flag"></i> Reports</a>
   <a href="{% url 'analytics:dashboard' %}" class="btn-ghost"><i class="bi bi-bar-chart"></i> Analytics</a>

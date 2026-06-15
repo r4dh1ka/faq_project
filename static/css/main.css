@@ -17,7 +17,7 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--ink);
 }
 
@@ -375,10 +375,10 @@ label {
   border-radius: 16px;
   background: white;
   box-shadow: 0 28px 70px rgba(15, 23, 42, 0.16);
-  animation: panelIn 180ms ease;
+  animation: panel-in 180ms ease;
 }
 
-@keyframes panelIn {
+@keyframes panel-in {
   from { opacity: 0; transform: translateY(12px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
@@ -534,10 +534,10 @@ label {
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeInOverlay 150ms ease;
+  animation: fade-in-overlay 150ms ease;
 }
 
-@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-in-overlay { from { opacity: 0; } to { opacity: 1; } }
 
 .lightbox-overlay img {
   max-width: 92vw;

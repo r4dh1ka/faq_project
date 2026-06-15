@@ -28,7 +28,7 @@
       <div class="faq-answer prose max-w-none text-slate-700">{{ faq.answer|safe }}</div>
       {% if faq.image %}
       <div class="mt-6 grid max-w-xl gap-3">
-        <a href="{{ faq.image.url }}" target="_blank" class="block overflow-hidden rounded-lg border border-slate-200">
+        <a href="{{ faq.image.url }}" target="_blank" rel="noopener noreferrer" class="block overflow-hidden rounded-lg border border-slate-200">
           <img src="{{ faq.image.url }}" class="h-64 w-full object-cover" alt="">
         </a>
       </div>

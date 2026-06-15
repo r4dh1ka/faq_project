@@ -27,7 +27,15 @@ document.getElementById('question-title')?.addEventListener('blur', function() {
       const el = document.getElementById('duplicate-warning');
       if (data.duplicates?.length) {
         el.classList.remove('hidden');
-        el.innerHTML = 'Similar FAQs found: ' + data.duplicates.map(d => '<a class="font700 underline" href="'+d.url+'">'+d.title+'</a>').join(', ');
+        el.textContent = 'Similar FAQs found: ';
+        data.duplicates.forEach((d, i) => {
+          if (i > 0) el.appendChild(document.createTextNode(', '));
+          const a = document.createElement('a');
+          a.className = 'font700 underline';
+          a.href = d.url;
+          a.textContent = d.title;
+          el.appendChild(a);
+        });
       } else { el.classList.add('hidden'); }
     });
 });

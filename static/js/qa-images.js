@@ -6,7 +6,7 @@
 
     input.addEventListener('change', function () {
       preview.innerHTML = '';
-      preview.className = 'image-preview-grid';
+      preview.classList.add('image-preview-grid');
       const allFiles = Array.from(input.files);
       if (allFiles.length > (maxImages || 5)) {
         alert('Maximum ' + (maxImages || 5) + ' images allowed.');
